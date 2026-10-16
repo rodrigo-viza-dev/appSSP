@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useState, type PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from 'react';
 import { isSession, request, type Session } from '@/services/api';
 function useAuthState() {
   const [session, setSession] = useState<Session | null>(null);
@@ -15,7 +15,7 @@ function useAuthState() {
     } catch (error) { setMessage(error instanceof Error ? error.message : 'No se pudo ingresar.'); }
     finally { pending.current = false; setBusy(false); }
   }
-  function signOut(expired = false) { setSession(null); setMessage(expired ? 'Tu sesión venció. Ingresa nuevamente.' : ''); }
+  const signOut = useCallback((expired = false) => { setSession(null); setMessage(expired ? 'Tu sesión venció. Ingresa nuevamente.' : ''); }, []);
   return { session, busy, message, signIn, signOut };
 }
 const AuthContext = createContext<ReturnType<typeof useAuthState> | null>(null);

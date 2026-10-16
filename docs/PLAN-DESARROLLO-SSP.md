@@ -20,6 +20,7 @@ La prioridad es completar procesos con datos persistentes y permisos correctos. 
 - No hay restauración de sesión, almacenamiento seguro, persistencia de demo, archivos reales, sincronización ni push. La recuperación por correo sigue pendiente.
 - Tipos, pruebas API, exportación web y navegación automatizada se verificaron en Windows para el incremento 1. La prueba visual en dispositivos sigue pendiente.
 - Desarrollo web en `http://localhost:5173`; los preflight de login y consultas con Bearer aceptan ese origen desde el 16 de octubre.
+- Incremento 2: consulta de aula, tareas, entregas existentes y calificaciones del alumno. El recorrido web contra la cuenta de prueba ya respondió HTTP 200; el aula está sin tareas. Ver [alcance y pruebas](INCREMENTO-02.md). Envíos y archivos siguen pendientes.
 - Vista previa registrada: https://app-ssp--6b07s4oeez.expo.app. No se comprobó su disponibilidad actual.
 
 ### Backend revisado
@@ -242,8 +243,8 @@ Hitos: acceso real (fase 1), primer circuito operativo de horas (fase 2), piloto
 
 Dependencias externas: URL/versión real del API, usuarios de prueba por rol, responsable para cambios backend, almacenamiento privado, correo, credenciales de servicios gestionadas fuera del repositorio, plantilla institucional y validación reglamentaria. Para implementar no se necesitan contraseñas personales del usuario.
 
-## 11. Primer incremento recomendado
+## 11. Incrementos y siguiente recorrido
 
-Empezar por fase 0 y fase 1, con objetivo concreto: iniciar sesión contra FastAPI, restaurar la sesión y mostrar aula y práctica reales. A continuación cerrar el circuito de registro y validación de horas. Ese recorrido prueba integración, persistencia y permisos antes de extender el resto de módulos.
+El incremento 1 implementó ingreso contra FastAPI y paneles de consulta por rol. El incremento 2 agregó la consulta de aulas, tareas, entregas existentes y calificaciones del alumno; el recorrido web con la cuenta de prueba ya se comprobó contra el backend. La restauración de sesión sigue dependiendo de `/auth/me`.
 
-Entregables iniciales: matriz de endpoints y permisos, lista de cambios P0 del backend, configuración de entorno de ejemplo sin secretos, cliente API, sesión y navegación por rol, y evidencia de prueba con alumno/docente/supervisor/admin.
+Para el siguiente recorrido, coordinar las correcciones P0 del backend y disponer de una práctica activa de prueba antes de completar registro y validación de horas. Para habilitar entregas con archivos, resolver almacenamiento persistente, propiedad y reglas de plazo. Mantener las consultas ya disponibles mientras esas dependencias se completan.

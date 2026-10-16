@@ -29,16 +29,17 @@ npm run test:api
 npm run export:web
 ```
 
-`npm run test:navigation` requiere Expo web abierto y Playwright/Chromium disponibles. Si `playwright-core` está fuera del proyecto, configurar `PLAYWRIGHT_CORE_PATH` con su ruta. El origen predeterminado es `http://localhost:5173`; `SSP_WEB_URL` permite cambiarlo. Estas pruebas usan respuestas simuladas; no certifican la integración real con el backend.
+`npm run test:navigation` comprueba los flujos de acceso y demo; `npm run test:aulas`, el recorrido del alumno por aulas, tareas y calificaciones. Ambos requieren Expo web abierto y Playwright/Chromium disponibles. Si `playwright-core` está fuera del proyecto, configurar `PLAYWRIGHT_CORE_PATH` con su ruta. El origen predeterminado es `http://localhost:5173`; `SSP_WEB_URL` permite cambiarlo. Estas pruebas usan respuestas simuladas; no certifican la integración real con el backend.
 
 ## Estado actual
 
 - Ingreso real contra la API, sesión en memoria, cierre de sesión y paneles de consulta por rol. Un HTTP 401 devuelve al ingreso.
+- El alumno abre sus aulas y consulta tareas, entregas existentes, calificaciones y observaciones del docente. Los plazos se muestran en hora de Lima. El envío de entregas y la descarga de archivos siguen pendientes.
 - Demo separada con seis pantallas: ingreso, inicio, asistencia, nueva actividad, bitácora y avisos.
 - La demo permite registrar actividades, simular entrada/salida y marcar avisos como leídos; se reinicia al salir o recargar.
 - La sesión no se restaura al recargar. No se implementaron GPS, persistencia de la demo, notificaciones push, recuperación por correo ni escrituras reales de bitácora.
 
-El alcance y las comprobaciones del incremento están en [docs/INCREMENTO-01.md](docs/INCREMENTO-01.md). Las dependencias pendientes de backend están en [docs/REVISION-BACKEND-DESPLEGADO.md](docs/REVISION-BACKEND-DESPLEGADO.md).
+El alcance y las comprobaciones están en [incremento 1](docs/INCREMENTO-01.md) e [incremento 2](docs/INCREMENTO-02.md). Las dependencias pendientes de backend están en [docs/REVISION-BACKEND-DESPLEGADO.md](docs/REVISION-BACKEND-DESPLEGADO.md).
 
 ## Estructura
 
@@ -47,6 +48,7 @@ El alcance y las comprobaciones del incremento están en [docs/INCREMENTO-01.md]
 - `src/theme`: paleta institucional UNSA y tipografía.
 - `src/state`: sesión y estado compartido de la demo, en memoria.
 - `src/services`: cliente HTTP y contratos de API.
+- `src/features`: consultas y presentación de módulos funcionales.
 - `tests`: pruebas de API y navegación.
 - `imagenesReferencias`: mockups de las seis pantallas.
 

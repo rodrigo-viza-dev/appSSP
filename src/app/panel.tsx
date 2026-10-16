@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Screen } from '@/components/screen';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { useAuth } from '@/state/auth';
@@ -7,6 +8,7 @@ import { ApiError, getDashboard, type Dashboard } from '@/services/api';
 import { colors } from '@/theme';
 const roles = { ALUMNO: 'Practicante', PROFESOR: 'Docente', ADMIN: 'Administración', SUPERVISOR: 'Supervisor de empresa' };
 export default function PanelScreen() {
+  const router = useRouter();
   const { session, signOut } = useAuth();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState('');
@@ -35,7 +37,7 @@ export default function PanelScreen() {
         {data.practica ? <Card><Text style={typography.title}>{data.practica.aulaNombre}</Text><Text style={typography.body}>Periodo {data.practica.periodo} · {data.practica.estado.replaceAll('_', ' ')}</Text><Text style={typography.body}>{data.practica.horasAcumuladas} h acumuladas según el servidor · Meta: {data.practica.horasMinimas} h</Text><Text style={typography.body}>Este acumulado todavía puede incluir horas pendientes de validación.</Text></Card> : <Text style={typography.body}>No tienes una práctica activa asignada. Consulta con la coordinación.</Text>}
         <Text style={typography.title}>Mis aulas</Text>
         {data.aulas.length === 0 && <Text style={typography.body}>Aún no tienes aulas asignadas.</Text>}
-        {data.aulas.map(aula => <Card key={aula.id}><Text style={typography.title}>{aula.nombre}</Text><Text style={typography.body}>{aula.profesorNombre} · {aula.ciclo}</Text><Badge title={aula.estado === 'ACTIVA' ? 'Activa' : 'Concluida'} tone="neutral" /></Card>)}
+        {data.aulas.map(aula => <Card key={aula.id}><Text style={typography.title}>{aula.nombre}</Text><Text style={typography.body}>{aula.profesorNombre} · {aula.ciclo}</Text><Badge title={aula.estado === 'ACTIVA' ? 'Activa' : 'Concluida'} tone="neutral" /><Button title={`Abrir aula: ${aula.nombre}`} secondary onPress={() => router.push({ pathname: '/aula', params: { id: aula.id } })} /></Card>)}
       </>}
       {data && data.kind !== 'ALUMNO' && <><Text style={typography.title}>Resumen</Text>{data.metrics.map(metric => <Card key={metric.label}><Text style={typography.body}>{metric.label}</Text><Text style={typography.title}>{metric.value ?? 'Sin datos'}</Text></Card>)}</>}
       {session.user.role === 'SUPERVISOR' && <Text style={typography.body}>La validación de horas y la evaluación final requieren servicios adicionales del backend. Por ahora puedes consultar este resumen.</Text>}
