@@ -29,7 +29,7 @@ npm run test:api
 npm run export:web
 ```
 
-`npm run test:navigation` comprueba los flujos de acceso y demo; `npm run test:aulas`, el recorrido del alumno por aulas, tareas y calificaciones; `npm run test:centro`, el registro de centro y supervisor con revisión y recuperación de errores. Requieren Expo web abierto y Playwright/Chromium disponibles. Si `playwright-core` está fuera del proyecto, configurar `PLAYWRIGHT_CORE_PATH` con su ruta. El origen predeterminado es `http://localhost:5173`; `SSP_WEB_URL` permite cambiarlo. Estas pruebas usan respuestas simuladas; no certifican la integración real con el backend.
+`npm run test:navigation` comprueba acceso y demo; `npm run test:aulas`, aulas y tareas; `npm run test:centro`, el registro de centro/supervisor; `npm run test:avisos`, la bandeja, los marcados y el aislamiento entre cuentas. Requieren Expo web abierto y Playwright/Chromium disponibles. Si `playwright-core` está fuera del proyecto, configurar `PLAYWRIGHT_CORE_PATH` con su ruta. El origen predeterminado es `http://localhost:5173`; `SSP_WEB_URL` permite cambiarlo. Estas pruebas usan respuestas simuladas; no certifican la integración real con el backend.
 
 ## Estado actual
 
@@ -38,11 +38,12 @@ Cada incremento terminado se documenta, se verifica con Node/npm de Windows y se
 - Ingreso real contra la API, sesión en memoria, cierre de sesión y paneles de consulta por rol. Un HTTP 401 devuelve al ingreso.
 - El alumno abre sus aulas y consulta tareas, entregas existentes, calificaciones y observaciones del docente. Los plazos se muestran en hora de Lima. El envío de entregas y la descarga de archivos siguen pendientes.
 - **Mi centro de prácticas** permite consultar y registrar el centro y su supervisor. Cada registro requiere revisar y confirmar los datos; los resultados inciertos se consultan antes de repetir un envío. Registrar el contacto no crea una cuenta de supervisor ni asigna una práctica.
+- **Mis avisos** consulta los avisos de la cuenta para los cuatro roles, con contador compartido, filtros y marcado individual o masivo confirmado por el backend. Actualizar consulta nuevos avisos; no son notificaciones push.
 - Demo separada con seis pantallas: ingreso, inicio, asistencia, nueva actividad, bitácora y avisos.
 - La demo permite registrar actividades, simular entrada/salida y marcar avisos como leídos; se reinicia al salir o recargar.
 - La sesión no se restaura al recargar. No se implementaron GPS, persistencia de la demo, notificaciones push, recuperación por correo ni escrituras reales de bitácora.
 
-El alcance y las comprobaciones están en [incremento 1](docs/INCREMENTO-01.md), [incremento 2](docs/INCREMENTO-02.md) e [incremento 3](docs/INCREMENTO-03.md). Las dependencias pendientes de backend están en [docs/REVISION-BACKEND-DESPLEGADO.md](docs/REVISION-BACKEND-DESPLEGADO.md).
+El alcance y las comprobaciones están en [incremento 1](docs/INCREMENTO-01.md), [incremento 2](docs/INCREMENTO-02.md), [incremento 3](docs/INCREMENTO-03.md) e [incremento 4](docs/INCREMENTO-04.md). Las dependencias pendientes de backend están en [docs/REVISION-BACKEND-DESPLEGADO.md](docs/REVISION-BACKEND-DESPLEGADO.md).
 
 ## Estructura
 
@@ -52,6 +53,7 @@ El alcance y las comprobaciones están en [incremento 1](docs/INCREMENTO-01.md),
 - `src/state`: sesión y estado compartido de la demo, en memoria.
 - `src/services`: cliente HTTP y contratos de API.
 - `src/features`: consultas y presentación de módulos funcionales.
+- `src/utils`: formato de fechas compartido.
 - `tests`: pruebas de API y navegación.
 - `imagenesReferencias`: mockups de las seis pantallas.
 

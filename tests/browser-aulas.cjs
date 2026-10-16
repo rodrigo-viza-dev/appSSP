@@ -53,6 +53,7 @@ async function main() {
       assert.equal(request.method(), 'GET');
       assert.equal(request.headers().authorization, 'Bearer local-student-token');
       if (expired) { status = 401; body = { detail: 'Expired' }; }
+      else if (path.endsWith('/notificaciones')) body = [];
       else if (path.endsWith('/alumno/mis-aulas')) body = aulas;
       else if (path.endsWith('/practicas/actual')) body = null;
       else if (path === '/api/v1/alumno/aulas/aula-1') {

@@ -40,6 +40,7 @@ async function main() {
       else {
         assert.equal(request.headers().authorization, 'Bearer local-test-token');
         if (unauthorized) { status = 401; body = { detail: 'Expired' }; }
+        else if (path.endsWith('/notificaciones')) body = [];
         else if (path.endsWith('/admin/resumen')) body = { alumnosMatriculados: 2, profesoresActivos: 1, aulasActivas: 3, centrosDePracticas: 1 };
         else if (path.endsWith('/profesor/resumen')) body = { alumnosActivos: 0, entregasPendientes: 0, asistenciaPromedio: 100 };
         else if (path.endsWith('/alumno/mis-aulas')) body = [{ id: 'test-aula', nombre: 'Aula de prueba', profesorNombre: 'Docente de prueba', ciclo: '2026-II', estado: 'ACTIVA' }];

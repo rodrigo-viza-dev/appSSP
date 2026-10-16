@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { PracticeProvider, usePractice } from '@/state/practice';
+import { NotificationsProvider } from '@/state/notificaciones';
 
 function Navigation() {
   const { colors } = useTheme();
@@ -11,7 +12,7 @@ function Navigation() {
   const { demo } = usePractice();
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
     <Stack.Protected guard={!session && !demo}><Stack.Screen name="index" /></Stack.Protected>
-    <Stack.Protected guard={!!session}><Stack.Screen name="panel" /></Stack.Protected>
+    <Stack.Protected guard={!!session}><Stack.Screen name="panel" /><Stack.Screen name="mis-avisos" /></Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'ALUMNO'}>
       <Stack.Screen name="aula" />
       <Stack.Screen name="tarea" />
@@ -28,10 +29,10 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider><PracticeProvider>
+      <AuthProvider><NotificationsProvider><PracticeProvider>
         <StatusBar style="light" />
         <Navigation />
-      </PracticeProvider></AuthProvider>
+      </PracticeProvider></NotificationsProvider></AuthProvider>
     </SafeAreaProvider>
   );
 }

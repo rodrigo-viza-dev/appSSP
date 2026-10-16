@@ -4,12 +4,14 @@ import { useRouter } from 'expo-router';
 import { Screen } from '@/components/screen';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { useAuth } from '@/state/auth';
+import { useNotifications } from '@/state/notificaciones';
 import { ApiError, getDashboard, type Dashboard } from '@/services/api';
 import { colors } from '@/theme';
 const roles = { ALUMNO: 'Practicante', PROFESOR: 'Docente', ADMIN: 'Administración', SUPERVISOR: 'Supervisor de empresa' };
 export default function PanelScreen() {
   const router = useRouter();
   const { session, signOut } = useAuth();
+  const notifications = useNotifications();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -30,6 +32,10 @@ export default function PanelScreen() {
     <Header title={`Hola, ${session.user.nombres}`} subtitle={roles[session.user.role]} />
     <Screen>
       <Badge title="Cuenta SSP" tone="neutral" /><Text style={typography.body}>{session.user.email}</Text>
+      <Card><Text style={typography.title}>Avisos de mi cuenta</Text>
+        <Text accessibilityLiveRegion="polite" style={typography.body}>{notifications.loading ? 'Consultando avisos…' : notifications.error ? 'No se pudo consultar el estado de tus avisos.' : notifications.unread === null ? 'Avisos por consultar' : notifications.unread === 1 ? '1 aviso sin leer' : `${notifications.unread} avisos sin leer`}</Text>
+        <Button title="Mis avisos" secondary onPress={() => router.push('/mis-avisos')} />
+      </Card>
       {loading && <View accessibilityLiveRegion="polite"><ActivityIndicator color={colors.primary} /><Text style={typography.body}>Consultando tus datos…</Text></View>}
       {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}
       {data?.kind === 'ALUMNO' && <>

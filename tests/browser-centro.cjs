@@ -35,7 +35,8 @@ async function main() {
     if (path.endsWith('/auth/login')) body = { token: 'local-centro-token', user };
     else {
       assert.equal(request.headers().authorization, 'Bearer local-centro-token');
-      if (path.endsWith('/alumno/mis-aulas')) body = [];
+      if (path.endsWith('/notificaciones')) body = [];
+      else if (path.endsWith('/alumno/mis-aulas')) body = [];
       else if (path.endsWith('/practicas/actual')) body = null;
       else if (path.endsWith('/empresa/mine')) body = centro;
       else if (path.endsWith('/empresa') && request.method() === 'POST') {

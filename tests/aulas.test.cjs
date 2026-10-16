@@ -96,7 +96,7 @@ test('authorization, missing-resource errors and cancellation are preserved', as
 });
 
 test('academic dates use Lima time while a date-only deadline keeps its day', () => {
-  const { academicDate } = load('src/features/aulas/presentation.ts');
+  const { academicDate } = load('src/utils/date.ts');
   const result = academicDate('2026-10-17T02:30:00Z');
   assert.match(result, /16/);
   assert.ok(result.includes('21:30') || result.includes('9:30'), result);
