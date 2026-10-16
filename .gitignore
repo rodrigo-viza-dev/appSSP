@@ -2,6 +2,7 @@ node_modules/
 .expo/
 dist/
 web-build/
+coverage/
 expo-env.d.ts
 *.tsbuildinfo
 .env
@@ -13,4 +14,21 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 .DS_Store
+Thumbs.db
+*.log
 npm-debug.log*
+
+# Configuracion local de herramientas y credenciales
+/.agents/
+/.codex/
+/.aws/
+/.vscode/
+/.idea/
+
+# Contexto, reportes y lanzadores propios del equipo de desarrollo
+/AGENTS.md
+/docs/CONTEXTO-CODEX.md
+/docs/ESTADO-MIGRACION.md
+/docs/MENSAJE-AVANCE.md
+/scripts/abrir-entorno.ps1
+/scripts/continuar-codex.sh

@@ -16,17 +16,11 @@ La prioridad es completar procesos con datos persistentes y permisos correctos. 
 
 - Seis pantallas base: ingreso, inicio, asistencia, nueva actividad, bitácora y avisos.
 - Estado compartido en `src/state/practice.tsx`, solamente en memoria.
-- Login y recuperación muestran integración pendiente; navegación protegida por indicador de demo.
-- No hay cliente API, almacenamiento seguro, persistencia local, archivos reales, sincronización ni push.
-- Tipos y exportación web pasaron en Windows el 9 de octubre según `docs/ESTADO-MIGRACION.md`; no se repitieron en esta revisión. La prueba visual en dispositivos sigue pendiente.
-- El historial local de Codex registra una publicación de vista previa realizada por el usuario: https://app-ssp--6b07s4oeez.expo.app. No se comprobó disponibilidad actual.
-
-### Continuidad recuperada
-
-- Sesión «Revisar mockups con Expo»: `01a1214a-f865-7203-b891-51d4e31c81da`.
-- Sesión «Continúa el proyecto PrácticasCC»: `01a1216e-1a46-71a3-aad2-c15fd50d09f8`.
-- Evidencia: índice e historial locales de Codex, además de los documentos del proyecto. Se revisaron entradas pertinentes; no se afirma haber reconstruido toda la conversación.
-- El estado de migración quedó anterior a la publicación posterior registrada en el historial. Usar ambos documentos con esa distinción temporal.
+- Ingreso real, cliente API y paneles de consulta por rol; sesión en memoria y demo separada. Ver [incremento 1](INCREMENTO-01.md) para el alcance y las comprobaciones realizadas.
+- No hay restauración de sesión, almacenamiento seguro, persistencia de demo, archivos reales, sincronización ni push. La recuperación por correo sigue pendiente.
+- Tipos, pruebas API, exportación web y navegación automatizada se verificaron en Windows para el incremento 1. La prueba visual en dispositivos sigue pendiente.
+- Desarrollo web en `http://localhost:5173`; los preflight de login y consultas con Bearer aceptan ese origen desde el 16 de octubre.
+- Vista previa registrada: https://app-ssp--6b07s4oeez.expo.app. No se comprobó su disponibilidad actual.
 
 ### Backend revisado
 

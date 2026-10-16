@@ -35,4 +35,4 @@ La referencia suma 148 horas: 48 pendientes, 60 validadas y 40 validadas. La imp
 
 ## Validación en Windows
 
-Después de migrar a Windows se ejecutaron npm ci, typecheck y export:web correctamente con Node/npm de Windows. Se corrigió el tipo de color de los iconos de navegación. Queda pendiente comprobar representación visual, teclado y áreas seguras en navegador y Expo Go. Ver `docs/ESTADO-MIGRACION.md`.
+Después de migrar a Windows se ejecutaron npm ci, typecheck y export:web correctamente con Node/npm de Windows. Se corrigió el tipo de color de los iconos de navegación. Para el incremento 1 también se comprobó la navegación web automatizada; ver [INCREMENTO-01.md](INCREMENTO-01.md). Queda pendiente comprobar representación visual, teclado y áreas seguras en dispositivos con Expo Go.

@@ -9,7 +9,7 @@ async function main() {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  const origin = process.env.SSP_WEB_URL || 'http://localhost:8081';
+  const origin = process.env.SSP_WEB_URL || 'http://localhost:5173';
   const login = () => page.getByRole('button', { name: 'Explorar demo', exact: true });
   try {
     await page.goto(origin);

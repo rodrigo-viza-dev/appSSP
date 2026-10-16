@@ -49,9 +49,13 @@ npm run test:api
 npm run test:navigation
 ```
 
-La prueba de navegación requiere Playwright/Chromium en Windows. Se reutilizó una instalación existente para esta verificación; no se añadieron dependencias ni se descargaron navegadores. `SSP_WEB_URL` permite cambiar el origen de la prueba (predeterminado: `http://localhost:8081`).
+La prueba de navegación requiere Playwright/Chromium en Windows. Se reutilizó una instalación existente para esta verificación; no se añadieron dependencias ni se descargaron navegadores. `SSP_WEB_URL` permite cambiar el origen de la prueba (predeterminado desde el 16 de octubre: `http://localhost:5173`).
 
-## Bloqueo web comprobado
+## Desarrollo local actualizado · 16 de octubre de 2026
+
+`npm start` y `npm run web` usan ahora el puerto 5173. Abrir `http://localhost:5173`, cuyo ingreso respondió HTTP 200 con Expo ejecutado desde Windows. El backend acepta ese origen: los preflight de login (POST, `content-type`) y consulta de aulas (GET, `authorization`) devolvieron HTTP 200 con `Access-Control-Allow-Origin: http://localhost:5173`. No se repitió el ingreso real ni se verificó el origen de vista previa en esta comprobación.
+
+## Bloqueo web comprobado · 15 de octubre de 2026
 
 El preflight de login desde `http://localhost:8081` devuelve HTTP 400, `Disallowed CORS origin`. El servidor responde con `Access-Control-Allow-Origin: https://cs-comunicacion.vercel.app`. No se evitó este control con proxies ni opciones inseguras del navegador.
 
@@ -65,7 +69,7 @@ El usuario comparte este texto; no se envió ningún mensaje.
 
 - Cuentas de prueba ADMIN, PROFESOR y ALUMNO autorizadas por el usuario: login y consultas verificados con HTTP 200. El alumno tiene un aula y no tiene práctica activa. No se modificaron datos.
 - Prueba manual Android y accesibilidad/teclado en dispositivos. La navegación web automatizada ya pasó.
-- Corregir CORS en backend para navegador de desarrollo y vista previa. No usar proxies para ocultar ese problema.
+- Verificar el ingreso real en navegador desde `http://localhost:5173` y CORS de la vista previa. Los preflight locales de login y consulta con Bearer ya pasan desde el 16 de octubre.
 - Agregar `/auth/me` y resolver verificación/restauración antes de persistir sesión.
 - Corregir permisos y acumulados del backend antes del piloto con datos reales.
 - Los acumulados se etiquetan como valores del servidor, que pueden incluir horas pendientes; no se presentan como validados.
