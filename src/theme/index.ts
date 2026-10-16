@@ -1,26 +1,12 @@
-import { useColorScheme } from 'react-native';
+import { Platform } from 'react-native';
 
-// Paleta provisional: se sustituirá al revisar los mockups.
-const palettes = {
-  light: {
-    background: '#F5F7FA',
-    surface: '#FFFFFF',
-    text: '#172339',
-    muted: '#56647A',
-    accent: '#245EDB',
-    border: '#DCE3ED',
-  },
-  dark: {
-    background: '#101722',
-    surface: '#1B2636',
-    text: '#F4F7FC',
-    muted: '#B5C0D1',
-    accent: '#90B5FF',
-    border: '#36455A',
-  },
+// Manual de Marca UNSA, pp. 11–12: RGB 94/21/29 y 20/30/66.
+export const colors = {
+  primary: '#5E151D', accent: '#5E151D', primarySoft: '#F4E9EB',
+  navy: '#141E42', text: '#252124', muted: '#746D6A',
+  background: '#FFFFFF', surface: '#F7F4F3', border: '#E7DFDC',
+  success: '#356520', successSoft: '#EAF3E1',
+  warning: '#89550D', warningSoft: '#FAEFD9', white: '#FFFFFF',
 };
-
-export function useTheme() {
-  const mode = useColorScheme() === 'dark' ? 'dark' : 'light';
-  return { colors: palettes[mode], mode };
-}
+export const serif = Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia' });
+export function useTheme() { return { colors, mode: 'light' as const }; }
