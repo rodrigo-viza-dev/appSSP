@@ -21,6 +21,7 @@ La prioridad es completar procesos con datos persistentes y permisos correctos. 
 - Tipos, pruebas API, exportación web y navegación automatizada se verificaron en Windows para el incremento 1. La prueba visual en dispositivos sigue pendiente.
 - Desarrollo web en `http://localhost:5173`; los preflight de login y consultas con Bearer aceptan ese origen desde el 16 de octubre.
 - Incremento 2: consulta de aula, tareas, entregas existentes y calificaciones del alumno. El recorrido web contra la cuenta de prueba ya respondió HTTP 200; el aula está sin tareas. Ver [alcance y pruebas](INCREMENTO-02.md). Envíos y archivos siguen pendientes.
+- Incremento 3: consulta y registro del centro y su supervisor, con revisión y confirmación previas, y consulta del resultado ante respuestas inciertas. Las consultas reales del centro/supervisor respondieron HTTP 200; los guardados se probaron con fixtures. Ver [alcance y pruebas](INCREMENTO-03.md). No asigna una práctica ni crea una cuenta de supervisor.
 - Vista previa registrada: https://app-ssp--6b07s4oeez.expo.app. No se comprobó su disponibilidad actual.
 
 ### Backend revisado
@@ -245,6 +246,6 @@ Dependencias externas: URL/versión real del API, usuarios de prueba por rol, re
 
 ## 11. Incrementos y siguiente recorrido
 
-El incremento 1 implementó ingreso contra FastAPI y paneles de consulta por rol. El incremento 2 agregó la consulta de aulas, tareas, entregas existentes y calificaciones del alumno; el recorrido web con la cuenta de prueba ya se comprobó contra el backend. La restauración de sesión sigue dependiendo de `/auth/me`.
+El incremento 1 implementó ingreso contra FastAPI y paneles de consulta por rol. El incremento 2 agregó la consulta de aulas, tareas, entregas existentes y calificaciones del alumno; el recorrido web con la cuenta de prueba ya se comprobó contra el backend. El incremento 3 incorporó consulta y registro de centro/supervisor, con revisión previa y consulta tras resultados inciertos. La restauración de sesión sigue dependiendo de `/auth/me`.
 
 Para el siguiente recorrido, coordinar las correcciones P0 del backend y disponer de una práctica activa de prueba antes de completar registro y validación de horas. Para habilitar entregas con archivos, resolver almacenamiento persistente, propiedad y reglas de plazo. Mantener las consultas ya disponibles mientras esas dependencias se completan.

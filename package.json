@@ -9,9 +9,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web --port 5173",
     "typecheck": "tsc --noEmit",
-    "test:api": "node --test tests/api.test.cjs tests/aulas.test.cjs",
+    "test:api": "node --test tests/api.test.cjs tests/aulas.test.cjs tests/centro.test.cjs",
     "test:navigation": "node tests/browser-navigation.cjs",
     "test:aulas": "node tests/browser-aulas.cjs",
+    "test:centro": "node tests/browser-centro.cjs",
     "export:web": "expo export --platform web"
   },
   "dependencies": {

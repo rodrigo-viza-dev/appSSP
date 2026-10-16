@@ -33,6 +33,7 @@ export default function PanelScreen() {
       {loading && <View accessibilityLiveRegion="polite"><ActivityIndicator color={colors.primary} /><Text style={typography.body}>Consultando tus datos…</Text></View>}
       {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}
       {data?.kind === 'ALUMNO' && <>
+        <Button title="Mi centro de prácticas" secondary onPress={() => router.push('/centro')} />
         <Text style={typography.title}>Mi práctica</Text>
         {data.practica ? <Card><Text style={typography.title}>{data.practica.aulaNombre}</Text><Text style={typography.body}>Periodo {data.practica.periodo} · {data.practica.estado.replaceAll('_', ' ')}</Text><Text style={typography.body}>{data.practica.horasAcumuladas} h acumuladas según el servidor · Meta: {data.practica.horasMinimas} h</Text><Text style={typography.body}>Este acumulado todavía puede incluir horas pendientes de validación.</Text></Card> : <Text style={typography.body}>No tienes una práctica activa asignada. Consulta con la coordinación.</Text>}
         <Text style={typography.title}>Mis aulas</Text>

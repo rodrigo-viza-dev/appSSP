@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApiError, type Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 
@@ -26,10 +26,14 @@ export function useStudentQuery<T>(key: string, load: (session: Session, signal:
   }, [key, load, active, session, signOut, attempt]);
 
   const current = active && query.key === key && query.session === session;
+  const setData = useCallback((data: T) => {
+    if (active && session) setQuery({ key, session, data, error: null, loading: false });
+  }, [active, key, session]);
   return {
     data: current ? query.data : null,
     error: current ? query.error : null,
     loading: active && (!current || query.loading),
     retry: () => setAttempt(value => value + 1),
+    setData,
   };
 }

@@ -15,6 +15,7 @@ function Navigation() {
     <Stack.Protected guard={session?.user.role === 'ALUMNO'}>
       <Stack.Screen name="aula" />
       <Stack.Screen name="tarea" />
+      <Stack.Screen name="centro" />
     </Stack.Protected>
     <Stack.Protected guard={demo && !session}>
       <Stack.Screen name="(tabs)" />
