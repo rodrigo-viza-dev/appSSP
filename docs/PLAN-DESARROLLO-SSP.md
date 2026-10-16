@@ -224,6 +224,8 @@ Salida: ningún bloqueo crítico de acceso, pérdida de datos o permisos; escena
 
 ## 9. Pruebas y definición de terminado
 
+Por indicación del usuario, verificar solo lo necesario para cada incremento: tipos y recorrido o contrato afectado; compilación cuando cambien rutas. No repetir todas las suites ni añadir pruebas que reproduzcan la implementación.
+
 Para cada HU: contrato real, permisos en backend, datos persistentes, estados de UI, errores recuperables y evidencia de aceptación. No considerar una HU terminada por tener una pantalla o un endpoint.
 
 Pruebas prioritarias:
@@ -249,4 +251,6 @@ Dependencias externas: URL/versión real del API, usuarios de prueba por rol, re
 
 El incremento 1 implementó ingreso contra FastAPI y paneles de consulta por rol. El incremento 2 agregó la consulta de aulas, tareas, entregas existentes y calificaciones del alumno; el recorrido web con la cuenta de prueba ya se comprobó contra el backend. El incremento 3 incorporó consulta y registro de centro/supervisor, con revisión previa y consulta tras resultados inciertos. El incremento 4 agregó la bandeja de avisos de la cuenta y su marcado de lectura. Cada incremento terminado se verifica y se sube a GitHub con un commit propio. La restauración de sesión sigue dependiendo de `/auth/me`.
 
-Para el siguiente recorrido, coordinar las correcciones P0 del backend y disponer de una práctica activa de prueba antes de completar registro y validación de horas. Para habilitar entregas con archivos, resolver almacenamiento persistente, propiedad y reglas de plazo. Mantener las consultas ya disponibles mientras esas dependencias se completan.
+El incremento 5 incorpora el módulo docente y de administración: aulas, seguimiento académico de estudiantes, revisión y calificación confirmada de entregas, y libro de notas. Ver [INCREMENTO-05.md](INCREMENTO-05.md).
+
+Los próximos flujos disponibles para docencia son asistencia académica y publicación de tareas. Para el circuito de horas, coordinar las correcciones P0 del backend y disponer de una práctica activa de prueba. Para habilitar entregas con archivos, resolver almacenamiento persistente, propiedad y reglas de plazo.

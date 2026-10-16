@@ -36,6 +36,7 @@ export default function PanelScreen() {
         <Text accessibilityLiveRegion="polite" style={typography.body}>{notifications.loading ? 'Consultando avisos…' : notifications.error ? 'No se pudo consultar el estado de tus avisos.' : notifications.unread === null ? 'Avisos por consultar' : notifications.unread === 1 ? '1 aviso sin leer' : `${notifications.unread} avisos sin leer`}</Text>
         <Button title="Mis avisos" secondary onPress={() => router.push('/mis-avisos')} />
       </Card>
+      {(session.user.role === 'PROFESOR' || session.user.role === 'ADMIN') && <Button title="Mis aulas · Docencia" onPress={() => router.push('/docencia')} />}
       {loading && <View accessibilityLiveRegion="polite"><ActivityIndicator color={colors.primary} /><Text style={typography.body}>Consultando tus datos…</Text></View>}
       {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}
       {data?.kind === 'ALUMNO' && <>

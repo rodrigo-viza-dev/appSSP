@@ -18,6 +18,11 @@ function Navigation() {
       <Stack.Screen name="tarea" />
       <Stack.Screen name="centro" />
     </Stack.Protected>
+    <Stack.Protected guard={session?.user.role === 'PROFESOR' || session?.user.role === 'ADMIN'}>
+      <Stack.Screen name="docencia" />
+      <Stack.Screen name="aula-docente" />
+      <Stack.Screen name="revisar-entrega" />
+    </Stack.Protected>
     <Stack.Protected guard={demo && !session}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="nueva-actividad" />
