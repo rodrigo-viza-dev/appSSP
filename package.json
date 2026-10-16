@@ -15,6 +15,7 @@
     "test:centro": "node tests/browser-centro.cjs",
     "test:avisos": "node tests/browser-avisos.cjs",
     "test:docencia": "node tests/browser-docencia.cjs",
+    "test:asistencia": "node tests/browser-asistencia.cjs",
     "export:web": "expo export --platform web"
   },
   "dependencies": {

@@ -253,4 +253,6 @@ El incremento 1 implementó ingreso contra FastAPI y paneles de consulta por rol
 
 El incremento 5 incorpora el módulo docente y de administración: aulas, seguimiento académico de estudiantes, revisión y calificación confirmada de entregas, y libro de notas. Ver [INCREMENTO-05.md](INCREMENTO-05.md).
 
-Los próximos flujos disponibles para docencia son asistencia académica y publicación de tareas. Para el circuito de horas, coordinar las correcciones P0 del backend y disponer de una práctica activa de prueba. Para habilitar entregas con archivos, resolver almacenamiento persistente, propiedad y reglas de plazo.
+El incremento 6 agrega consulta y guardado confirmado de asistencia académica por fecha, explicando los valores presentes por defecto del backend. Ver [INCREMENTO-06.md](INCREMENTO-06.md).
+
+La publicación de tareas requiere una ruta de creación: el OpenAPI revisado aún no la ofrece. Para el circuito de horas, coordinar las correcciones P0 del backend y disponer de una práctica activa de prueba. Para habilitar entregas con archivos, resolver almacenamiento persistente, propiedad y reglas de plazo. En asistencia siguen pendientes la distinción entre valores propuestos y registros guardados, la validación de padrón y auditoría en servidor.

@@ -1,0 +1,51 @@
+import { useCallback, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Text, View } from 'react-native';
+import { Screen } from '@/components/screen';
+import { QueryFeedback } from '@/components/query-feedback';
+import { Button, Card, Field, Header, typography } from '@/components/ui';
+import { AttendanceForm } from '@/features/docencia/attendance-form';
+import { useDocenteQuery } from '@/features/shared/use-docente-query';
+import type { Session } from '@/services/api';
+import { getAulaDocente } from '@/services/docencia';
+import { getAsistencia, todayLima, validAttendanceDate } from '@/services/asistencia';
+import { colors } from '@/theme';
+
+export default function AsistenciaDocenteScreen() {
+  const params = useLocalSearchParams<{ aulaId?: string }>();
+  const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
+  const router = useRouter();
+  const [fecha, setFecha] = useState(todayLima);
+  const [draftFecha, setDraftFecha] = useState(fecha);
+  const [dateError, setDateError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [saving, setSaving] = useState(false);
+  const aula = useDocenteQuery(`asistencia-aula:${aulaId}`, useCallback((s: Session, signal: AbortSignal) => getAulaDocente(s, aulaId, signal), [aulaId]), !!aulaId.trim());
+  const query = useDocenteQuery(`asistencia:${aulaId}:${fecha}`, useCallback((s: Session, signal: AbortSignal) => getAsistencia(s, aulaId, fecha, signal), [aulaId, fecha]), !!aula.data);
+  const refresh = () => { setNotice(''); query.retry(); };
+  function consult() {
+    if (saving) return;
+    if (!validAttendanceDate(draftFecha)) { setDateError('Escribe una fecha válida con formato AAAA-MM-DD.'); return; }
+    setDateError(''); setNotice('');
+    if (fecha === draftFecha) query.retry(); else setFecha(draftFecha);
+  }
+  return <View style={{ flex: 1, backgroundColor: colors.white }}>
+    <Header title="Asistencia académica" subtitle={aula.data?.nombre ?? 'Lista del aula'} back={() => router.canGoBack() ? router.back() : router.replace({ pathname: '/aula-docente', params: { id: aulaId } })} />
+    <Screen>
+      {!aulaId.trim() && <Text accessibilityRole="alert" style={typography.error}>El enlace del aula no es válido.</Text>}
+      <QueryFeedback {...aula} notFound="El aula no está disponible para tu cuenta." />
+      {aula.data && <>
+        <Card><Text style={typography.body}>Esta es la asistencia a las sesiones académicas del aula. No registra jornadas de empresa ni valida horas de prácticas.</Text></Card>
+        <Field label="Fecha de asistencia (AAAA-MM-DD)" value={draftFecha} editable={!saving} onChangeText={setDraftFecha} maxLength={10} placeholder="2026-10-16" />
+        {!!dateError && <Text accessibilityRole="alert" style={typography.error}>{dateError}</Text>}
+        <Button title="Consultar fecha" secondary disabled={saving || query.loading} onPress={consult} />
+        <Text style={typography.title}>Lista del {fecha}</Text>
+        <Text style={typography.body}>El servidor propone a todos como presentes cuando no existe un registro previo. Revisa cada estudiante; consultar esta lista no confirma que ya se haya guardado.</Text>
+        {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
+        <QueryFeedback {...query} notFound="La lista de asistencia no está disponible." />
+        {draftFecha !== fecha && <Text style={typography.body}>Consulta la nueva fecha antes de revisar su lista.</Text>}
+        {query.data && draftFecha === fecha && <AttendanceForm key={`${aulaId}:${fecha}:${query.data.items.map(v => `${v.practicanteId}:${v.presente}`).join(',')}`} data={query.data} onBusy={setSaving} onReview={() => setNotice('')} refresh={refresh} onSaved={saved => { query.setData(saved); setNotice(`Asistencia del ${saved.fecha} guardada y confirmada por el servidor.`); }} />}
+      </>}
+    </Screen>
+  </View>;
+}

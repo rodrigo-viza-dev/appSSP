@@ -22,6 +22,7 @@ function Navigation() {
       <Stack.Screen name="docencia" />
       <Stack.Screen name="aula-docente" />
       <Stack.Screen name="revisar-entrega" />
+      <Stack.Screen name="asistencia-docente" />
     </Stack.Protected>
     <Stack.Protected guard={demo && !session}>
       <Stack.Screen name="(tabs)" />
