@@ -2,6 +2,14 @@
 
 Este archivo resume las decisiones y el estado de la conversación anterior. No es una transcripción literal. Revisar los archivos antes de asumir que los pasos pendientes ya se ejecutaron.
 
+## Actualización · 15 de octubre de 2026
+
+La app ya tiene ingreso real y paneles de consulta por rol contra `https://back-cs-de-la-com.vercel.app`, del repositorio `BastleyNait/BACK-CS-DE-LA-COM`. Sesión en memoria y demo separada. Las cuentas de prueba ADMIN, PROFESOR y ALUMNO fueron autorizadas por el usuario; login y consultas reales respondieron HTTP 200. El alumno tiene un aula, sin práctica activa.
+
+Navegación centralizada con `Stack.Protected` después de corregir un ciclo al salir de demo. Tipos, exportación web y pruebas API pasaron con Windows. Chromium comprobó tres ciclos de entrada/salida, rutas protegidas, paneles por rol y sesión expirada sin errores de React; los paneles del navegador se probaron con respuestas simuladas.
+
+Pendientes de backend: CORS rechaza `http://localhost:8081` y la vista previa Expo; falta `/auth/me`, almacenamiento persistente de archivos y varias operaciones del supervisor. Ver `docs/INCREMENTO-01.md`, `docs/REVISION-BACKEND-DESPLEGADO.md` y `docs/PLAN-DESARROLLO-SSP.md` antes de asumir capacidades completadas. El resto de este documento describe el estado histórico de la primera demo.
+
 ## Objetivo y preferencias
 
 Crear con Expo una app de prácticas preprofesionales de Ciencias de la Comunicación de la UNSA, llamada PrácticasCC. El usuario quiere un primer avance navegable que pueda compartir rápidamente con su líder. Prefiere alta calidad visual siguiendo sus mockups y la identidad institucional.

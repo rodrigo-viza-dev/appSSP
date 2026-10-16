@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { Badge, Button, Field, Header, typography } from '@/components/ui';
@@ -7,13 +7,12 @@ import { usePractice } from '@/state/practice';
 
 export default function NewActivityScreen() {
   const router = useRouter();
-  const { demo, addActivity } = usePractice();
+  const { addActivity } = usePractice();
   const today = new Date();
   const [date, setDate] = useState(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
   const [hours, setHours] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
-  if (!demo) return <Redirect href="/" />;
   function save() {
     const parsed = new Date(`${date}T12:00:00`);
     const value = Number(hours.replace(',', '.'));

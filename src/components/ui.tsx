@@ -10,8 +10,8 @@ export function Header({ title, subtitle, back }: { title: string; subtitle: str
     <View style={s.mark}><Text style={s.markText}>UNSA</Text></View>
   </View></SafeAreaView>;
 }
-export function Button({ title, onPress, secondary = false }: { title: string; onPress: () => void; secondary?: boolean }) {
-  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [s.button, secondary && s.secondary, { opacity: pressed ? 0.8 : 1 }]}><Text style={[s.buttonText, secondary && { color: colors.primary }]}>{title}</Text></Pressable>;
+export function Button({ title, onPress, secondary = false, disabled = false }: { title: string; onPress: () => void; secondary?: boolean; disabled?: boolean }) {
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, secondary && s.secondary, { opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }]}><Text style={[s.buttonText, secondary && { color: colors.primary }]}>{title}</Text></Pressable>;
 }
 export function Card({ children }: PropsWithChildren) { return <View style={s.card}>{children}</View>; }
 export function Label({ children }: PropsWithChildren) { return <Text style={s.label}>{children}</Text>; }

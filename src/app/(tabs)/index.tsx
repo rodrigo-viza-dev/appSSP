@@ -18,6 +18,6 @@ export default function HomeScreen() {
     <Button title="Marcar asistencia" onPress={() => router.push('/(tabs)/asistencia')} />
     <Button title="Registrar nueva actividad" secondary onPress={() => router.push('/nueva-actividad')} />
     <View style={{ flex: 1 }} />
-    <Pressable accessibilityRole="button" onPress={() => { logout(); router.replace('/'); }} style={{ padding: 12, alignItems: 'center' }}><Text style={{ color: colors.muted, fontSize: 12 }}>Salir de la demo</Text></Pressable>
+    <Pressable accessibilityRole="button" onPress={logout} style={{ padding: 12, alignItems: 'center' }}><Text style={{ color: colors.muted, fontSize: 12 }}>Salir de la demo</Text></Pressable>
   </Screen></View>;
 }
