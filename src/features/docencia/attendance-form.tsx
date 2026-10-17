@@ -32,12 +32,13 @@ export function AttendanceForm({ data, onSaved, onBusy, refresh, onReview }: { d
   }
   if (!items.length) return <Text style={typography.body}>No hay estudiantes inscritos para tomar asistencia.</Text>;
   return <View style={{ gap: 16 }}>
+    {items.some(v => data.items.find(original => original.practicanteId === v.practicanteId)?.presente !== v.presente) && <Text accessibilityLiveRegion="polite" style={typography.body}>Hay cambios sin guardar.</Text>}
     <Text style={typography.title}>{presentes} presentes · {items.length - presentes} ausentes</Text>
     {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}
     {uncertain ? <Card><Text style={typography.body}>No se confirmó el resultado. Consulta la lista guardada antes de reenviar.</Text><Button title="Consultar asistencia actual" secondary onPress={refresh} /></Card> : <>
       {review && <><Label>REVISAR ASISTENCIA · {data.fecha}</Label><Text style={typography.body}>Al confirmar se reemplaza la asistencia de esta fecha con la lista completa que se muestra abajo.</Text></>}
       {items.map(item => review ? <Card key={item.practicanteId}><Text style={typography.title}>{item.practicanteNombre}</Text><Badge title={item.presente ? 'Presente' : 'Ausente'} tone={item.presente ? 'success' : 'warning'} /></Card> : <Pressable key={item.practicanteId} accessibilityRole="checkbox" accessibilityLabel={`Presente: ${item.practicanteNombre}`} aria-checked={item.presente} onPress={() => { onReview(); setItems(values => values.map(v => v.practicanteId === item.practicanteId ? { ...v, presente: !v.presente } : v)); }} style={{ minHeight: 64, padding: 18, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, gap: 8 }}>
-        <Text style={typography.title}>{item.practicanteNombre}</Text><Badge title={item.presente ? 'Presente' : 'Ausente'} tone={item.presente ? 'success' : 'warning'} />
+        <Text style={typography.title}>{item.practicanteNombre}</Text><Badge title={item.presente ? 'Presente' : 'Ausente'} tone={item.presente ? 'success' : 'warning'} />{item.registrado === false && <Text style={typography.body}>Sin registro guardado para esta fecha.</Text>}
       </Pressable>)}
       {review ? <><Button title={busy ? 'Guardando asistencia…' : 'Confirmar asistencia'} disabled={busy} onPress={save} /><Button title="Corregir lista" secondary disabled={busy} onPress={() => setReview(false)} /></> : <Button title="Revisar asistencia" onPress={() => { onReview(); setReview(true); }} />}
     </>}

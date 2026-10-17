@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
-import { Button, Card, Field, Header, typography } from '@/components/ui';
+import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { AttendanceForm } from '@/features/docencia/attendance-form';
 import { useDocenteQuery } from '@/features/shared/use-docente-query';
 import type { Session } from '@/services/api';
@@ -40,11 +40,15 @@ export default function AsistenciaDocenteScreen() {
         {!!dateError && <Text accessibilityRole="alert" style={typography.error}>{dateError}</Text>}
         <Button title="Consultar fecha" secondary disabled={saving || query.loading} onPress={consult} />
         <Text style={typography.title}>Lista del {fecha}</Text>
-        <Text style={typography.body}>El servidor propone a todos como presentes cuando no existe un registro previo. Revisa cada estudiante; consultar esta lista no confirma que ya se haya guardado.</Text>
+        {query.data && <Card>
+          <Badge title={query.data.versionAsistencia !== 1 ? 'Estado de guardado sin confirmar' : query.data.estadoRegistro === 'GUARDADO' ? 'Asistencia guardada' : query.data.estadoRegistro === 'PARCIAL' ? 'Registro por revisar' : 'Propuesta sin guardar'} tone={query.data.estadoRegistro === 'GUARDADO' && query.data.versionAsistencia === 1 ? 'success' : 'warning'} />
+          <Text style={typography.body}>{query.data.versionAsistencia !== 1 ? 'Este servidor no distingue valores propuestos de registros guardados. La consulta está disponible; el guardado requiere una actualización.' : query.data.estadoRegistro === 'GUARDADO' ? 'Estos valores provienen de la asistencia guardada para esta fecha.' : query.data.estadoRegistro === 'PARCIAL' ? 'El registro no coincide con el padrón actual. Revisa la lista completa antes de confirmar.' : 'Todavía no hay un registro para esta fecha. Los presentes son una propuesta que debes revisar.'}</Text>
+        </Card>}
+        {query.data && (fecha > todayLima() || aula.data.estado !== 'ACTIVA') && <Text style={typography.body}>{fecha > todayLima() ? 'No se puede guardar asistencia futura.' : 'El aula está concluida. La asistencia se puede consultar.'}</Text>}
         {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
         <QueryFeedback {...query} notFound="La lista de asistencia no está disponible." />
         {draftFecha !== fecha && <Text style={typography.body}>Consulta la nueva fecha antes de revisar su lista.</Text>}
-        {query.data && draftFecha === fecha && <AttendanceForm key={`${aulaId}:${fecha}:${query.data.items.map(v => `${v.practicanteId}:${v.presente}`).join(',')}`} data={query.data} onBusy={setSaving} onReview={() => setNotice('')} refresh={refresh} onSaved={saved => { query.setData(saved); setNotice(`Asistencia del ${saved.fecha} guardada y confirmada por el servidor.`); }} />}
+        {query.data && draftFecha === fecha && (query.data.versionAsistencia === 1 && fecha <= todayLima() && aula.data.estado === 'ACTIVA' ? <AttendanceForm key={`${aulaId}:${fecha}:${query.data.revision}`} data={query.data} onBusy={setSaving} onReview={() => setNotice('')} refresh={refresh} onSaved={saved => { query.setData(saved); setNotice(`Asistencia del ${saved.fecha} guardada y confirmada por el servidor.`); }} /> : query.data.items.map(item => <Card key={item.practicanteId}><Text style={typography.title}>{item.practicanteNombre}</Text><Text style={typography.body}>{item.presente ? 'Presente' : 'Ausente'}</Text></Card>))}
       </>}
     </Screen>
   </View>;
