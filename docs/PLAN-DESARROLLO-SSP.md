@@ -268,3 +268,5 @@ El incremento 11 distingue propuestas y asistencia guardada, valida el padrón, 
 El incremento 12 incorpora la consulta de auditoría ADMIN con filtros, búsqueda y detalle de asistencia por estudiante. Reutiliza endpoints existentes y solo consulta datos. Ver [INCREMENTO-12.md](INCREMENTO-12.md). La paginación del historial sigue pendiente; el incremento 13 añade auditoría de revisiones de horas.
 
 El incremento 13 completa el rechazo con motivo, la corrección/reenvío del alumno y el historial de horas con revisión para evitar sobrescrituras. Ver [INCREMENTO-13.md](INCREMENTO-13.md). La migración se aplicó solo al esquema Supabase de pruebas.
+
+El incremento 14 añade anuncios fijados/búsqueda, foros con respuestas, metas por práctica y avance docente auditado, además de una guía de 13 artículos por rol. Incluye accesos desde panel/aulas, alcance de recursos y reintentos sin duplicados. Ver [INCREMENTO-14.md](INCREMENTO-14.md). Adjuntos, chat directo en la app, push y reglas definitivas de evidencia/cierre siguen pendientes.

@@ -20,7 +20,8 @@
     "export:web": "expo export --platform web",
     "test:horas": "node tests/browser-horas.cjs",
     "test:tareas": "node tests/browser-tareas.cjs",
-    "test:auditoria": "node tests/browser-auditoria.cjs"
+    "test:auditoria": "node tests/browser-auditoria.cjs",
+    "test:modulos": "node tests/browser-modulos.cjs"
   },
   "dependencies": {
     "expo": "~57.0.26",

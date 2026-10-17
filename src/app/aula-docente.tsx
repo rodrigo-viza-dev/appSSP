@@ -38,6 +38,8 @@ export default function AulaDocenteScreen() {
       <QueryFeedback {...aula} notFound="El aula no está disponible para tu cuenta." />
       {aula.data && <>
         <Text style={typography.body}>{aula.data.codigo} · {aula.data.periodo} · {aula.data.inscritos} inscritos</Text>
+        <Button title="Anuncios y foros del aula" secondary onPress={() => router.push({ pathname: '/comunidad', params: { aulaId: id } })} />
+        <Button title="Gestionar metas de prácticas" secondary onPress={() => router.push('/metas')} />
         <Button title="Tomar asistencia académica" secondary onPress={() => router.push({ pathname: '/asistencia-docente', params: { aulaId: id } })} />
         <Button title="Publicar y consultar tareas" secondary onPress={() => router.push({ pathname: '/tareas-docente', params: { aulaId: id } })} />
         <View style={{ flexDirection: 'row', gap: 8 }}>
