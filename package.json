@@ -17,7 +17,8 @@
     "test:avisos": "node tests/browser-avisos.cjs",
     "test:docencia": "node tests/browser-docencia.cjs",
     "test:asistencia": "node tests/browser-asistencia.cjs",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "test:horas": "node tests/browser-horas.cjs"
   },
   "dependencies": {
     "expo": "~57.0.26",

@@ -37,6 +37,7 @@ export default function PanelScreen() {
         <Button title="Mis avisos" secondary onPress={() => router.push('/mis-avisos')} />
       </Card>
       {(session.user.role === 'PROFESOR' || session.user.role === 'ADMIN') && <Button title="Mis aulas · Docencia" onPress={() => router.push('/docencia')} />}
+      {(session.user.role === 'ALUMNO' || session.user.role === 'SUPERVISOR') && <Button title={session.user.role === 'ALUMNO' ? 'Mi bitácora de prácticas' : 'Validar horas de prácticas'} onPress={() => router.push('/mis-horas')} />}
       {loading && <View accessibilityLiveRegion="polite"><ActivityIndicator color={colors.primary} /><Text style={typography.body}>Consultando tus datos…</Text></View>}
       {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}
       {data?.kind === 'ALUMNO' && <>
@@ -48,7 +49,7 @@ export default function PanelScreen() {
         {data.aulas.map(aula => <Card key={aula.id}><Text style={typography.title}>{aula.nombre}</Text><Text style={typography.body}>{aula.profesorNombre} · {aula.ciclo}</Text><Badge title={aula.estado === 'ACTIVA' ? 'Activa' : 'Concluida'} tone="neutral" /><Button title={`Abrir aula: ${aula.nombre}`} secondary onPress={() => router.push({ pathname: '/aula', params: { id: aula.id } })} /></Card>)}
       </>}
       {data && data.kind !== 'ALUMNO' && <><Text style={typography.title}>Resumen</Text>{data.metrics.map(metric => <Card key={metric.label}><Text style={typography.body}>{metric.label}</Text><Text style={typography.title}>{metric.value ?? 'Sin datos'}</Text></Card>)}</>}
-      {session.user.role === 'SUPERVISOR' && <Text style={typography.body}>La validación de horas y la evaluación final requieren servicios adicionales del backend. Por ahora puedes consultar este resumen.</Text>}
+      {session.user.role === 'SUPERVISOR' && <Text style={typography.body}>La bitácora permite revisar horas cuando el servidor tiene habilitado el circuito actualizado. La evaluación final sigue pendiente.</Text>}
       <Button title="Actualizar datos" secondary disabled={loading} onPress={() => setAttempt(value => value + 1)} />
       <Text style={typography.body}>Por ahora, cerrar o recargar la app termina la sesión.</Text>
       <Button title="Cerrar sesión" onPress={() => signOut()} />

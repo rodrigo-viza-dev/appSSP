@@ -13,6 +13,7 @@ function Navigation() {
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
     <Stack.Protected guard={!session && !demo}><Stack.Screen name="index" /></Stack.Protected>
     <Stack.Protected guard={!!session}><Stack.Screen name="panel" /><Stack.Screen name="mis-avisos" /></Stack.Protected>
+    <Stack.Protected guard={session?.user.role === 'ALUMNO' || session?.user.role === 'SUPERVISOR'}><Stack.Screen name="mis-horas" /></Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'ALUMNO'}>
       <Stack.Screen name="aula" />
       <Stack.Screen name="tarea" />
