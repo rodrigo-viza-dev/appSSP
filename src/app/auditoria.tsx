@@ -13,12 +13,13 @@ export default function AuditScreen() {
   const { session } = useAuth();
   const router = useRouter();
   const query = useSessionQuery('admin-audit', useCallback(getAuditData, []), session?.user.role === 'ADMIN');
-  const [filter, setFilter] = useState<'all' | 'attendance' | 'admin'>('all');
+  const [filter, setFilter] = useState<'all' | 'attendance' | 'hours' | 'admin'>('all');
   const [search, setSearch] = useState(''), [expanded, setExpanded] = useState('');
   const data = query.data;
   const entries = data?.entries.filter(entry => {
     const attendance = entry.accion === 'ASISTENCIA_ACADEMICA';
-    if (filter === 'attendance' && !attendance || filter === 'admin' && attendance) return false;
+    const hours = entry.accion.startsWith('HORAS_');
+    if (filter === 'attendance' && !attendance || filter === 'hours' && !hours || filter === 'admin' && (attendance || hours)) return false;
     const detail = attendanceAudit(entry);
     const label = `${entry.userNombre} ${auditAction(entry.accion)} ${detail ? `${detail.fecha} ${data.aulas[detail.aulaId] ?? ''}` : attendance ? '' : entry.detalle}`;
     return label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase());
@@ -34,13 +35,13 @@ export default function AuditScreen() {
       {data && <>
         {data.incompleteNames && <Text style={typography.body}>No se pudieron actualizar algunos nombres de aulas o estudiantes. Los registros siguen disponibles.</Text>}
         <Field label="Buscar responsable, aula o fecha" value={search} onChangeText={setSearch} placeholder="Escribe para filtrar" />
-        <View style={{ gap: 8, flexDirection: 'row', flexWrap: 'wrap' }}>{([['all', 'Toda la actividad'], ['attendance', 'Asistencia'], ['admin', 'Administración']] as const).map(([key, title]) => <Button key={key} title={title} secondary={filter !== key} onPress={() => { setFilter(key); setExpanded(''); }} />)}</View>
+        <View style={{ gap: 8, flexDirection: 'row', flexWrap: 'wrap' }}>{([['all', 'Toda la actividad'], ['attendance', 'Asistencia'], ['hours', 'Horas'], ['admin', 'Administración']] as const).map(([key, title]) => <Button key={key} title={title} secondary={filter !== key} onPress={() => { setFilter(key); setExpanded(''); }} />)}</View>
         <Text accessibilityLiveRegion="polite" style={typography.body}>{entries?.length ?? 0} de {data.entries.length} registros</Text>
         {!entries?.length && <Text style={typography.body}>No hay registros que coincidan con la consulta.</Text>}
         {entries?.map(entry => {
           const detail = attendanceAudit(entry);
           return <Card key={entry.id}>
-            <Badge title={entry.accion === 'ASISTENCIA_ACADEMICA' ? 'Asistencia' : 'Administración'} tone="neutral" />
+            <Badge title={entry.accion === 'ASISTENCIA_ACADEMICA' ? 'Asistencia' : entry.accion.startsWith('HORAS_') ? 'Horas' : 'Administración'} tone="neutral" />
             <Text style={typography.title}>{auditAction(entry.accion)}</Text><Text style={typography.body}>Responsable: {entry.userNombre}</Text>
             <Text style={typography.body}>{academicDate(entry.fecha, 'Fecha no disponible')}</Text>
             {detail ? <>

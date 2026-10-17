@@ -16,7 +16,7 @@ export function attendanceAudit(entry: AuditEntry): AttendanceAudit | null {
   } catch { return null; }
 }
 export function auditAction(action: string) {
-  return ({ ASISTENCIA_ACADEMICA: 'Cambio de asistencia', MATRICULA: 'Matrícula de estudiante', RETIRO_MATRICULA: 'Retiro de matrícula', ESTADO_AULA: 'Cambio de estado del aula', ASIGNAR_PROFESOR: 'Asignación de docente', CAMBIO_ROL: 'Cambio de rol' } as Record<string, string>)[action] ?? action.replaceAll('_', ' ');
+  return ({ HORAS_REGISTRO: 'Registro de horas', HORAS_RECHAZO: 'Rechazo de horas', HORAS_CORRECCION: 'Corrección de horas', HORAS_VALIDACION: 'Validación de horas', ASISTENCIA_ACADEMICA: 'Cambio de asistencia', MATRICULA: 'Matrícula de estudiante', RETIRO_MATRICULA: 'Retiro de matrícula', ESTADO_AULA: 'Cambio de estado del aula', ASIGNAR_PROFESOR: 'Asignación de docente', CAMBIO_ROL: 'Cambio de rol' } as Record<string, string>)[action] ?? action.replaceAll('_', ' ');
 }
 function names(value: unknown, users: boolean): Record<string, string> | null {
   if (!Array.isArray(value) || !value.every(v => object(v) && nonempty(v.id) && (users ? text(v.nombres) && text(v.apellidos) : nonempty(v.nombre)))) return null;

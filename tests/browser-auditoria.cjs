@@ -13,6 +13,7 @@ async function main() {
       { id: 'audit1', userNombre: 'Docente Prueba', accion: 'ASISTENCIA_ACADEMICA', fecha: '2026-10-17T12:00:00Z', detalle: JSON.stringify({ aulaId: 'a1', fecha: '2026-10-17', antes: [{ practicanteId: 's1', presente: false }], despues: [{ practicanteId: 's1', presente: true }], conservadosFueraDelPadron: ['old1'] }) },
       { id: 'audit2', userNombre: 'Admin Prueba', accion: 'MATRICULA', fecha: '2026-10-17T11:00:00Z', detalle: 'Ana Prueba → Comunicación' },
       { id: 'audit3', userNombre: 'Otro Docente', accion: 'ASISTENCIA_ACADEMICA', fecha: '2026-10-17T10:00:00Z', detalle: '{incompleto' },
+      { id: 'audit4', userNombre: 'Supervisor Prueba', accion: 'HORAS_RECHAZO', fecha: '2026-10-17T13:00:00Z', detalle: 'Rechazo de actividad de prueba: especifica la entrevista.' },
     ];
     await page.route('**/api/v1/**', async route => {
       const req = route.request(), path = new URL(req.url()).pathname.replace('/api/v1', ''); let body, status = 200;
@@ -35,11 +36,15 @@ async function main() {
       await page.getByLabel('Contraseña', { exact: true }).fill('fixture'); await button('Ingresar').click();
     }
     await signIn('admin'); await button('Auditoría de actividad').click();
-    await visible('3 de 3 registros').waitFor();
-    await button('Asistencia').click(); await visible('2 de 3 registros').waitFor();
+    await visible('4 de 4 registros').waitFor();
+    await button('Horas').click(); await visible('1 de 4 registros').waitFor();
+    await visible('Rechazo de horas').waitFor();
+    await button('Administración').click(); await visible('1 de 4 registros').waitFor();
+    assert.equal(await visible('Rechazo de horas').count(), 0);
+    await button('Asistencia').click(); await visible('2 de 4 registros').waitFor();
     assert.equal(await visible('Matrícula de estudiante').count(), 0);
     await page.getByLabel('Buscar responsable, aula o fecha', { exact: true }).fill('Comunicación');
-    await visible('1 de 3 registros').waitFor(); await button('Ver cambios').click();
+    await visible('1 de 4 registros').waitFor(); await button('Ver cambios').click();
     await visible('Ana Prueba').waitFor(); await visible('Antes: Ausente').waitFor(); await visible('Después: Presente').waitFor();
     await visible('Se conservaron 1 registros históricos fuera del padrón actual.').waitFor();
     await page.getByLabel('Buscar responsable, aula o fecha', { exact: true }).fill('');

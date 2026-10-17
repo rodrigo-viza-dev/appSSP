@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Button, Card, Field, typography } from '@/components/ui';
 import { ApiError } from '@/services/api';
-import { getHoras, registrarHoras, revisarHoras, validateHoras, type HorasDraft, type PracticaHoras, type RegistroHoras } from '@/services/horas';
+import { getHoras, corregirHoras, registrarHoras, revisarHoras, validateHoras, type HorasDraft, type PracticaHoras, type RegistroHoras } from '@/services/horas';
 import { todayLima } from '@/services/asistencia';
 import { useAuth } from '@/state/auth';
 
@@ -28,17 +28,26 @@ function useWrite(onBusy: (value: boolean) => void) {
   }
   return { run, busy, error, setError, uncertain, setUncertain, session };
 }
-export function RegisterHoursForm({ practica, onSaved, refresh, onBusy }: { practica: PracticaHoras; onSaved: () => void; refresh: () => void; onBusy: (v: boolean) => void }) {
-  const [value, setValue] = useState<HorasDraft>(() => ({ fecha: todayLima(), horas: '', descripcion: '', solicitudId: newId() }));
+export function RegisterHoursForm({ practica, registro, onSaved, refresh, onBusy }: { practica: PracticaHoras; registro?: RegistroHoras; onSaved: () => void; refresh: () => void; onBusy: (v: boolean) => void }) {
+  const [value, setValue] = useState<HorasDraft>(() => ({ fecha: registro?.fecha.slice(0, 10) ?? todayLima(), horas: registro ? String(registro.horas) : '', descripcion: registro?.descripcion ?? '', solicitudId: newId() }));
   const [review, setReview] = useState(false);
   const write = useWrite(onBusy);
   const change = (key: keyof HorasDraft, text: string) => setValue(v => ({ ...v, [key]: text }));
-  function prepare() { try { validateHoras(value); write.setError(''); setReview(true); } catch (e) { write.setError((e as Error).message); } }
-  return <Card><Text style={typography.title}>Registrar actividad</Text>
+  function prepare() { try { const payload = validateHoras(value); if (registro && payload.horas === registro.horas && payload.descripcion === registro.descripcion && value.fecha === registro.fecha.slice(0, 10)) throw new Error('Modifica la actividad antes de reenviarla.'); write.setError(''); setReview(true); } catch (e) { write.setError((e as Error).message); } }
+  return <Card><Text style={typography.title}>{registro ? 'Corregir actividad rechazada' : 'Registrar actividad'}</Text>
     {!!write.error && <Text accessibilityRole="alert" style={typography.error}>{write.error}</Text>}
     {write.uncertain ? <><Text style={typography.body}>No se confirmó el resultado. Consulta la bitácora antes de registrar otra actividad.</Text><Button title={write.busy ? 'Consultando bitácora…' : 'Consultar bitácora actual'} disabled={write.busy} onPress={() => void write.run(async signal => {
       const rows = await getHoras(write.session!, practica.id, signal);
       if (signal.aborted) return;
+      if (registro) {
+        const found = rows.find(r => r.id === registro.id);
+        const payload = validateHoras(value);
+        if (found?.revision === (registro.revision ?? -1) + 1 && found.estadoValidacion === 'PENDIENTE' && found.horas === payload.horas && found.descripcion === payload.descripcion && found.fecha.slice(0, 10) === value.fecha) { onSaved(); return; }
+        write.setUncertain(false);
+        if (found && found.revision === registro.revision && found.estadoValidacion === 'RECHAZADO') { setReview(true); write.setError('La corrección aún no figura. Puedes confirmar el mismo reenvío.'); }
+        else { refresh(); write.setError('La actividad cambió. Consulta los datos actualizados.'); }
+        return;
+      }
       const found = rows.find(r => r.id === `h-${value.solicitudId}`);
       if (found) {
         const payload = validateHoras(value);
@@ -48,7 +57,7 @@ export function RegisterHoursForm({ practica, onSaved, refresh, onBusy }: { prac
     }, true)} /></> : review ? <>
       <Text style={typography.body}>{value.fecha} · {value.horas} h</Text><Text style={typography.body}>{value.descripcion.trim()}</Text>
       <Text style={typography.body}>Se enviará al supervisor y quedará pendiente de validación.</Text>
-      <Button title={write.busy ? 'Guardando actividad…' : 'Confirmar actividad'} disabled={write.busy} onPress={() => void write.run(async signal => { await registrarHoras(write.session!, practica, value, signal); if (!signal.aborted) onSaved(); })} />
+      <Button title={write.busy ? 'Guardando actividad…' : registro ? 'Confirmar corrección y reenviar' : 'Confirmar actividad'} disabled={write.busy} onPress={() => void write.run(async signal => { if (registro) await corregirHoras(write.session!, practica, registro, value, signal); else await registrarHoras(write.session!, practica, value, signal); if (!signal.aborted) onSaved(); })} />
       <Button title="Corregir actividad" secondary disabled={write.busy} onPress={() => setReview(false)} />
     </> : <>
       <Field label="Fecha de actividad (AAAA-MM-DD)" value={value.fecha} onChangeText={text => change('fecha', text)} maxLength={10} />
@@ -60,12 +69,14 @@ export function RegisterHoursForm({ practica, onSaved, refresh, onBusy }: { prac
 }
 export function ReviewHoursForm({ registro, onSaved, refresh, onBusy, disabled }: { disabled: boolean; registro: RegistroHoras; onSaved: () => void; refresh: () => void; onBusy: (v: boolean) => void }) {
   const [decision, setDecision] = useState<'VALIDADO' | 'RECHAZADO' | null>(null);
+  const [observacion, setObservacion] = useState('');
   const write = useWrite(onBusy);
   return <View style={{ gap: 12 }}>
     {!!write.error && <Text accessibilityRole="alert" style={typography.error}>{write.error}</Text>}
     {write.uncertain ? <Button title="Consultar revisión actual" onPress={refresh} /> : decision ? <>
-      <Text style={typography.body}>{decision === 'VALIDADO' ? `Se validarán ${registro.horas} h.` : 'Las horas quedarán rechazadas y no sumarán al avance.'} La decisión queda cerrada para este registro.</Text>
-      <Button title={write.busy ? 'Guardando revisión…' : 'Confirmar revisión'} disabled={write.busy || disabled} onPress={() => void write.run(async signal => { await revisarHoras(write.session!, registro, decision, signal); if (!signal.aborted) onSaved(); })} />
+      <Text style={typography.body}>{decision === 'VALIDADO' ? `Se validarán ${registro.horas} h.` : 'Las horas quedarán rechazadas y no sumarán al avance.'} El alumno podrá corregir las actividades rechazadas.</Text>
+      <Field label={decision === 'RECHAZADO' ? 'Motivo del rechazo' : 'Observación (opcional)'} value={observacion} onChangeText={setObservacion} multiline maxLength={2000} editable={!write.busy} />
+      <Button title={write.busy ? 'Guardando revisión…'  : 'Confirmar revisión'} disabled={write.busy || disabled} onPress={() => void write.run(async signal => { await revisarHoras(write.session!, registro, decision, observacion, signal); if (!signal.aborted) onSaved(); })} />
       <Button title="Cancelar revisión" secondary disabled={write.busy || disabled} onPress={() => setDecision(null)} />
     </> : <>
       <Button title="Validar horas" disabled={disabled} onPress={() => setDecision('VALIDADO')} />
