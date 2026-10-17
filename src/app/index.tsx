@@ -6,6 +6,7 @@ import { Screen } from '@/components/screen';
 import { Button, Field, typography } from '@/components/ui';
 import { colors, serif } from '@/theme';
 import { usePractice } from '@/state/practice';
+import { API_URL, IS_LOCAL_API } from '@/services/api';
 
 export default function LoginScreen() {
   const { enterDemo } = usePractice();
@@ -30,6 +31,11 @@ export default function LoginScreen() {
     </View></SafeAreaView>
     <Screen>
       <View style={{ gap: 8 }}><Text style={typography.title}>Bienvenido a tus prácticas</Text><Text style={typography.body}>Tu experiencia profesional, paso a paso.</Text></View>
+      <View style={s.environment}>
+        <Text style={s.environmentTitle}>{IS_LOCAL_API ? 'Entorno de pruebas locales' : 'Acceso a cuenta SSP'}</Text>
+        <Text style={typography.body}>{IS_LOCAL_API ? 'Usa una cuenta ficticia de pruebas. La contraseña institucional no permite ingresar aquí.' : 'Usa una cuenta registrada en este servidor. Las cuentas de pruebas locales pertenecen a otro entorno.'}</Text>
+        <Text selectable style={s.environmentUrl}>{API_URL}</Text>
+      </View>
       <Field label="Correo de tu cuenta SSP" value={email} editable={ready && !busy} onChangeText={setEmail} placeholder="alumno@unsa.edu.pe" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
       <Field label="Contraseña" value={password} editable={ready && !busy} onChangeText={setPassword} placeholder="Ingresa tu contraseña" secureTextEntry autoComplete="current-password" />
       {authMessage !== '' && <Text accessibilityRole="alert" style={typography.error}>{authMessage}</Text>}
@@ -45,5 +51,6 @@ const s = StyleSheet.create({
   hero: { backgroundColor: colors.primary }, heroInner: { padding: 28, paddingTop: 38, paddingBottom: 30, gap: 13 },
   university: { fontSize: 9, letterSpacing: 1.3, color: '#E7CED1' }, brand: { fontSize: 39, fontFamily: serif, color: colors.white }, brandAccent: { color: '#E7CED1' },
   school: { fontSize: 10, fontWeight: '600', letterSpacing: 1.7, color: '#E7CED1' }, rule: { width: 38, height: 2, backgroundColor: '#DABCC0', marginTop: 8 },
+  environment: { gap: 7, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 17, padding: 16 }, environmentTitle: { color: colors.primary, fontSize: 14, fontWeight: '600' }, environmentUrl: { color: colors.muted, fontSize: 12 },
   recovery: { padding: 8, alignItems: 'center' }, link: { color: colors.primary, fontSize: 13 }, demo: { gap: 12, marginTop: 10 }, demoText: { fontSize: 10, letterSpacing: 1.3, color: colors.muted, textAlign: 'center' }, footer: { fontSize: 11, lineHeight: 18, textAlign: 'center', color: colors.muted, marginTop: 12 },
 });

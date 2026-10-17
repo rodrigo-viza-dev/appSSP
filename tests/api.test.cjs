@@ -3,10 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
-function load(fetch) {
+function load(fetch, env = {}) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync('src/services/api.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  vm.runInNewContext(code, { exports, process: { env: {} }, fetch, AbortController, setTimeout, clearTimeout });
+  vm.runInNewContext(code, { exports, process: { env }, fetch, AbortController, setTimeout, clearTimeout });
   return exports;
 }
 test('login sends credentials as JSON without a bearer token', async () => {
@@ -23,6 +23,14 @@ test('401 and 403 stay distinct and never expose server detail', async () => {
     const api = load(async () => ({ ok: false, status, json: async () => ({ detail: 'private' }) }));
     await assert.rejects(api.request('/private', 'example'), error => error.status === status && !error.message.includes('private'));
   }
+});
+test('login rejection distinguishes credentials from expiration and identifies the selected environment', async () => {
+  const api = load(async () => ({ ok: false, status: 401 }), { EXPO_PUBLIC_API_URL: 'http://localhost:8000/' });
+  assert.equal(api.IS_LOCAL_API, true);
+  assert.equal(api.API_URL, 'http://localhost:8000');
+  await assert.rejects(api.request('/auth/login', undefined, { email: 'test@example.org', password: 'wrong' }), error => error.status === 401 && error.message.includes('este entorno') && !error.message.includes('venció'));
+  await assert.rejects(api.request('/private', 'expired'), error => error.status === 401 && error.message.includes('sesión venció'));
+  assert.equal(load(undefined, { EXPO_PUBLIC_API_URL: 'https://localhost.example.org' }).IS_LOCAL_API, false);
 });
 test('network failure produces a recoverable connection error', async () => {
   const api = load(async () => { throw new TypeError('fetch failed'); });

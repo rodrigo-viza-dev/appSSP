@@ -33,7 +33,7 @@ async function main() {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
 
-  await page.route('https://back-cs-de-la-com.vercel.app/api/v1/**', async route => {
+  await page.route('**/api/v1/**', async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     let body;

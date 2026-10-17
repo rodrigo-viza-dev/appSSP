@@ -8,18 +8,19 @@ Abrir PowerShell en la carpeta del proyecto en Windows. Usar Node/npm de Windows
 
 ```powershell
 npm ci
+# En otra terminal: iniciar C:\proyectos\appSSP-backend\scripts\iniciar-pruebas.ps1
 npm run web
 ```
 
-Abrir `http://localhost:5173`. Tanto `npm start` como `npm run web` usan el puerto 5173, permitido por el backend. Usar `localhost` en la URL para conservar el origen autorizado.
+Abrir `http://localhost:5173`. `npm run web` usa ahora la API local de pruebas y comprueba su conexión a Supabase antes de iniciar Expo. Rechaza un segundo servidor en 5173: detener el anterior con Ctrl+C. Usar `localhost` para conservar el origen autorizado.
 
 Para dispositivos, ejecutar `npm start` y escanear el QR con una versión compatible de Expo Go, o pulsar `a` para Android. El simulador de iOS requiere macOS. La verificación física en dispositivos sigue pendiente.
 
 ## Configuración de API
 
-La URL predeterminada es `https://back-cs-de-la-com.vercel.app`. Para cambiarla, copiar `.env.example` a `.env.local` y ajustar `EXPO_PUBLIC_API_URL`, sin `/api/v1`. Reiniciar Expo después de cambiar la configuración. Las variables `EXPO_PUBLIC_` son públicas; no deben contener contraseñas ni secretos.
+`npm run web` y `npm run web:pruebas` fijan `EXPO_PUBLIC_API_URL=http://localhost:8000` para su proceso. Para abrir deliberadamente otro backend, usar `npm run web:configurado`: respeta `.env.local`/el entorno y, sin configuración, conserva `https://back-cs-de-la-com.vercel.app`. `npm start` y las exportaciones también conservan esa configuración. Para cambiarla, copiar `.env.example` a `.env.local` y ajustar `EXPO_PUBLIC_API_URL`, sin `/api/v1`. Detener el Expo anterior y reiniciar después de cambiar la configuración. Las variables `EXPO_PUBLIC_` son públicas; no deben contener contraseñas ni secretos.
 
-Para el entorno local de Supabase de prueba, preparar el backend paralelo y ejecutar `npm run web:pruebas`. El comando comprueba la API local antes de arrancar Expo y mantiene el backend habitual como opción separada. Ver [preparación del entorno de prueba](docs/INCREMENTO-07.md).
+El login muestra el servidor elegido y distingue las cuentas ficticias locales de las cuentas de otros servidores. En Supabase de pruebas las tablas están en **`ssp_test`**, con `public` vacío. Las cuentas pertenecen a `ssp_test.users`, no a Supabase Auth; el login usa FastAPI/JWT. Consultar [diagnóstico de acceso y base](docs/INCREMENTO-17.md) y [preparación del entorno de prueba](docs/INCREMENTO-07.md). No reinicializar la base para intentar ver las tablas.
 
 ## Verificación
 
@@ -47,7 +48,7 @@ Cada incremento terminado se documenta, se verifica con Node/npm de Windows y se
 - **Asistencia académica** permite consultar una fecha, revisar presentes/ausentes y confirmar la lista completa del aula. Con el backend actualizado distingue propuesta, registro parcial y asistencia guardada; valida padrón/revisión y evita sobrescribir cambios concurrentes. Conserva el historial de alumnos retirados y audita cada cambio. Con el servidor anterior permite consulta. Esta asistencia se diferencia de las jornadas y horas de prácticas.
 - Demo separada con seis pantallas: ingreso, inicio, asistencia, nueva actividad, bitácora y avisos.
 - La demo permite registrar actividades, simular entrada/salida y marcar avisos como leídos; se reinicia al salir o recargar.
-- La sesión no se restaura al recargar. No se implementaron GPS, persistencia de la demo, notificaciones push, recuperación por correo ni escrituras reales de bitácora.
+- La sesión no se restaura al recargar. No se implementaron GPS, persistencia de la demo, notificaciones push ni recuperación por correo. La bitácora del backend de pruebas sí guarda registros y revisiones en Supabase.
 
 El alcance y las comprobaciones están en [incremento 1](docs/INCREMENTO-01.md), [incremento 2](docs/INCREMENTO-02.md), [incremento 3](docs/INCREMENTO-03.md), [incremento 4](docs/INCREMENTO-04.md), [incremento 5](docs/INCREMENTO-05.md) e [incremento 6](docs/INCREMENTO-06.md). Los incrementos recientes incorporan [conexión de pruebas](docs/INCREMENTO-07.md), [integración verificada](docs/INCREMENTO-08.md), [bitácora y validación de horas](docs/INCREMENTO-09.md) , [publicación y entrega escrita](docs/INCREMENTO-10.md), [asistencia con padrón y auditoría](docs/INCREMENTO-11.md) y [consulta administrativa de cambios](docs/INCREMENTO-12.md). Para estas funciones actualizadas, iniciar el backend de desarrollo y ejecutar `npm run web:pruebas`; la app comprueba que el servidor tenga las capacidades actualizadas. Las dependencias del despliegue anterior están en [docs/REVISION-BACKEND-DESPLEGADO.md](docs/REVISION-BACKEND-DESPLEGADO.md).
 

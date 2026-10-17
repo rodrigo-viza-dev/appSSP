@@ -1,4 +1,5 @@
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://back-cs-de-la-com.vercel.app').replace(/\/$/, '');
+export const IS_LOCAL_API = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i.test(API_URL);
 export type Role = 'ALUMNO' | 'PROFESOR' | 'ADMIN' | 'SUPERVISOR';
 export type Session = { token: string; user: { id: string; nombres: string; apellidos: string; email: string; role: Role } };
 export class ApiError extends Error { constructor(public status: number, message: string) { super(message); } }
@@ -13,7 +14,7 @@ export async function request<T>(path: string, token?: string, body?: unknown, s
     const response = await fetch(`${API_URL}/api/v1${path}`, { method: options?.method ?? (body === undefined ? 'GET' : 'POST'), signal: controller.signal,
       headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
-    if (!response.ok) throw new ApiError(response.status, response.status === 401 ? 'Credenciales incorrectas o sesión vencida.' : response.status === 403 ? 'No tienes permiso para esta acción.' : 'El servidor no pudo completar la solicitud. Intenta nuevamente.');
+    if (!response.ok) throw new ApiError(response.status, response.status === 401 ? (path === '/auth/login' ? 'Correo o contraseña incorrectos para este entorno. Revisa la cuenta SSP que estás usando.' : 'Tu sesión venció. Ingresa nuevamente.') : response.status === 403 ? 'No tienes permiso para esta acción.' : 'El servidor no pudo completar la solicitud. Intenta nuevamente.');
     if (options?.expectedStatus !== undefined && response.status !== options.expectedStatus) throw new ApiError(502, 'El servidor devolvió una respuesta no compatible. Actualiza los datos.');
     return response.status === 204 ? undefined as T : await response.json() as T;
   } catch (error) {

@@ -14,7 +14,7 @@ async function main() {
     let entrega = { id: 'delivery-1', tareaId: 'task-1', tareaTitulo: 'Informe semanal', alumnoId: 'student-1', alumnoNombre: 'Estudiante Prueba', descripcion: 'Trabajo realizado.', comentario: '', archivoId: null, estado: 'ENTREGADA', nota: null, retroalimentacion: null, createdAt: '2026-10-16T12:00:00Z' };
     let writes = 0;
     let fail = false;
-    await page.route('https://back-cs-de-la-com.vercel.app/api/v1/**', async route => {
+    await page.route('**/api/v1/**', async route => {
       const req = route.request();
       const path = new URL(req.url()).pathname.replace('/api/v1', '');
       let body;

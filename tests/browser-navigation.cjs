@@ -31,7 +31,7 @@ async function main() {
     const user = () => ({ id: 'test-user', nombres: 'Prueba', apellidos: 'Local', email: 'prueba@unsa.edu.pe', role });
     // These responses test UI and navigation only. They do not bypass CORS
     // in the application or claim integration with the deployed backend.
-    await page.route('https://back-cs-de-la-com.vercel.app/api/v1/**', async route => {
+    await page.route('**/api/v1/**', async route => {
       const request = route.request();
       const path = new URL(request.url()).pathname;
       let body;
