@@ -272,3 +272,5 @@ El incremento 13 completa el rechazo con motivo, la corrección/reenvío del alu
 El incremento 14 añade anuncios fijados/búsqueda, foros con respuestas, metas por práctica y avance docente auditado, además de una guía de 13 artículos por rol. Incluye accesos desde panel/aulas, alcance de recursos y reintentos sin duplicados. Ver [INCREMENTO-14.md](INCREMENTO-14.md). Adjuntos, chat directo en la app, push y reglas definitivas de evidencia/cierre siguen pendientes.
 
 El incremento 15 incorpora administración de usuarios/roles, creación de aulas, responsables/estado, matrícula y retiro, reporte institucional y ficha individual. Corrige el registro público de privilegios y verifica reintentos, conflictos y acceso tras retiro. Ver [INCREMENTO-15.md](INCREMENTO-15.md).
+
+El incremento 16 incorpora mensajería privada docente/alumno con contactos por aula, contadores sin leer, envío idempotente y confirmación explícita de lectura. Revisa pertenencia en cada operación y audita metadatos sin copiar texto privado. La guía suma 17 artículos. Ver [INCREMENTO-16.md](INCREMENTO-16.md). Push, tiempo real y adjuntos persistentes siguen pendientes.

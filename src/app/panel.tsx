@@ -40,6 +40,7 @@ export default function PanelScreen() {
       {session.user.role === 'ADMIN' && <Card><Text style={typography.title}>Operación académica</Text><Text style={typography.body}>Gestiona aulas, responsables y acceso de estudiantes; consulta el estado del programa.</Text><Button title="Administración académica" onPress={() => router.push('/administracion')} /><Button title="Reporte institucional" secondary onPress={() => router.push('/reportes')} /></Card>}
       {(session.user.role === 'PROFESOR' || session.user.role === 'ADMIN') && <Button title="Mis aulas · Docencia" onPress={() => router.push('/docencia')} />}
       {(session.user.role === 'ALUMNO' || session.user.role === 'SUPERVISOR') && <Button title={session.user.role === 'ALUMNO' ? 'Mi bitácora de prácticas' : 'Validar horas de prácticas'} onPress={() => router.push('/mis-horas')} />}
+      {(session.user.role === 'ALUMNO' || session.user.role === 'PROFESOR') && <Button title="Mensajes académicos" secondary onPress={() => router.push('/mensajes')} />}
       <Card><Text style={typography.title}>Seguimiento y comunidad</Text><Text style={typography.body}>Consulta objetivos de producción, comunicados y conversaciones de tu aula.</Text>
         <Button title="Metas de prácticas" secondary onPress={() => router.push('/metas')} />
         {session.user.role !== 'SUPERVISOR' && <Button title="Comunidad del aula" secondary onPress={() => router.push('/comunidad')} />}

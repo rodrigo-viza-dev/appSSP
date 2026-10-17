@@ -78,6 +78,7 @@ export default function AulaScreen() {
             </Card>)}
           </>}
         </>}
+        <Button title="Mensajes con el docente" secondary onPress={() => router.push({ pathname: '/mensajes', params: { aulaId: id } })} />
         <Button title="Anuncios del aula" secondary onPress={() => router.push({ pathname: '/comunidad', params: { aulaId: id, seccion: 'anuncios' } })} />
         <Button title="Foros del aula" secondary onPress={() => router.push({ pathname: '/comunidad', params: { aulaId: id, seccion: 'foros' } })} />
         <Button title="Consultar mis metas" secondary onPress={() => router.push('/metas')} />

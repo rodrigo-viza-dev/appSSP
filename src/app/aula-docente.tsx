@@ -10,8 +10,10 @@ import type { Session } from '@/services/api';
 import { getAulaDocente, getEntregasDocente, getLibroDocente, getPracticantesDocente } from '@/services/docencia';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
+import { useAuth } from '@/state/auth';
 
 export default function AulaDocenteScreen() {
+  const { session } = useAuth();
   const params = useLocalSearchParams<{ id?: string }>();
   const id = typeof params.id === 'string' ? params.id : '';
   const router = useRouter();
@@ -38,6 +40,7 @@ export default function AulaDocenteScreen() {
       <QueryFeedback {...aula} notFound="El aula no está disponible para tu cuenta." />
       {aula.data && <>
         <Text style={typography.body}>{aula.data.codigo} · {aula.data.periodo} · {aula.data.inscritos} inscritos</Text>
+        {session?.user.role === 'PROFESOR' && <Button title="Mensajes con estudiantes" secondary onPress={() => router.push({ pathname: '/mensajes', params: { aulaId: id } })} />}
         <Button title="Anuncios y foros del aula" secondary onPress={() => router.push({ pathname: '/comunidad', params: { aulaId: id } })} />
         <Button title="Gestionar metas de prácticas" secondary onPress={() => router.push('/metas')} />
         <Button title="Tomar asistencia académica" secondary onPress={() => router.push({ pathname: '/asistencia-docente', params: { aulaId: id } })} />
