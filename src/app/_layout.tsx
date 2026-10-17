@@ -21,6 +21,7 @@ function Navigation() {
     </Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'PROFESOR' || session?.user.role === 'ADMIN'}>
       <Stack.Screen name="docencia" />
+      <Stack.Screen name="tareas-docente" />
       <Stack.Screen name="aula-docente" />
       <Stack.Screen name="revisar-entrega" />
       <Stack.Screen name="asistencia-docente" />

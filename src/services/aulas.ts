@@ -74,3 +74,8 @@ export async function getCalificaciones(session: Session, aulaId: string, signal
     !Array.isArray(data.detalle) || !data.detalle.every(isCalificacion)) invalidResponse();
   return data as Calificaciones;
 }
+
+export function parseTareaResponse(value: unknown, aulaId: string, alumnoId = ''): Tarea {
+  if (!isTarea(value, aulaId, alumnoId)) invalidResponse();
+  return value;
+}

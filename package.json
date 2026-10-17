@@ -18,7 +18,8 @@
     "test:docencia": "node tests/browser-docencia.cjs",
     "test:asistencia": "node tests/browser-asistencia.cjs",
     "export:web": "expo export --platform web",
-    "test:horas": "node tests/browser-horas.cjs"
+    "test:horas": "node tests/browser-horas.cjs",
+    "test:tareas": "node tests/browser-tareas.cjs"
   },
   "dependencies": {
     "expo": "~57.0.26",

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
@@ -9,6 +9,7 @@ import { deliveryLabel } from '@/features/aulas/presentation';
 import { academicDate } from '@/utils/date';
 import { QueryFeedback } from '@/components/query-feedback';
 import { useStudentQuery } from '@/features/shared/use-student-query';
+import { DeliveryPanel } from '@/features/tareas/delivery-panel';
 import { colors } from '@/theme';
 
 export default function TareaScreen() {
@@ -20,6 +21,7 @@ export default function TareaScreen() {
   const load = useCallback((session: Session, signal: AbortSignal) => getTarea(session, aulaId, tareaId, signal), [aulaId, tareaId]);
   const query = useStudentQuery(`tarea:${JSON.stringify([aulaId, tareaId])}`, load, validLink);
   const tarea = query.data;
+  const [showDelivery, setShowDelivery] = useState(false), [busy, setBusy] = useState(false), [notice, setNotice] = useState('');
   const back = () => router.canGoBack() ? router.back() : aulaId
     ? router.replace({ pathname: '/aula', params: { id: aulaId } }) : router.replace('/panel');
 
@@ -28,6 +30,7 @@ export default function TareaScreen() {
     <Screen>
       {!validLink && <><Text accessibilityRole="alert" style={typography.error}>El enlace de la tarea no es válido. Ábrela desde tu aula.</Text><Button title="Ir a mi panel" onPress={() => router.replace('/panel')} /></>}
       <QueryFeedback {...query} notFound="La tarea no está disponible en esta aula." />
+      {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
       {tarea && <>
         <Badge title={deliveryLabel(tarea.entrega?.estado ?? null)} tone={tarea.entrega ? 'neutral' : 'warning'} />
         <Text accessibilityRole="header" style={typography.title}>{tarea.titulo}</Text>
@@ -47,8 +50,8 @@ export default function TareaScreen() {
             <Text style={typography.body}>{tarea.entrega.retroalimentacion || 'Aún no hay observaciones del docente.'}</Text>
           </Card>
         </> : <Card><Text style={typography.body}>Todavía no tienes una entrega registrada para esta tarea.</Text></Card>}
-        <Text style={typography.body}>El envío de nuevas entregas aún no está habilitado en esta app.</Text>
-        <Button title="Actualizar tarea" secondary onPress={query.retry} />
+        {!tarea.entrega && (showDelivery ? <DeliveryPanel task={tarea} onBusy={setBusy} onSaved={() => { setNotice('Entrega guardada y confirmada por el servidor.'); query.retry(); }} /> : <Button title="Entregar respuesta escrita" onPress={() => setShowDelivery(true)} />)}
+        <Button title="Actualizar tarea" secondary disabled={busy} onPress={query.retry} />
       </>}
     </Screen>
   </View>;
