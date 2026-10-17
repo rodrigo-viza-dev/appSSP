@@ -1,5 +1,7 @@
 # Incremento 7 · Preparación del entorno de prueba
 
+Actualización: la conexión y el recorrido real se completaron en el [incremento 8](INCREMENTO-08.md). Las credenciales pendientes descritas abajo corresponden al estado al preparar este incremento.
+
 Se clonó el backend confirmado en la carpeta paralela `C:\proyectos\appSSP-backend` y se preparó una rama de desarrollo para trabajar sobre el Supabase vacío autorizado. La arquitectura sigue siendo Expo → FastAPI → PostgreSQL; el ejemplo de acceso directo a una tabla `todos` no corresponde a los contratos de esta app.
 
 ## Preparación

@@ -13,7 +13,7 @@ async function main() {
     let items = [{ practicanteId: 's1', practicanteNombre: 'Ana Prueba', presente: true }, { practicanteId: 's2', practicanteNombre: 'Luis Prueba', presente: true }];
     let writes = 0;
     let fail = false;
-    await page.route('https://back-cs-de-la-com.vercel.app/api/v1/**', async route => {
+    await page.route('**/api/v1/**', async route => {
       const req = route.request(); const url = new URL(req.url()); const path = url.pathname.replace('/api/v1', '');
       let body; let status = 200;
       if (path === '/auth/login') body = { token: 'teacher-fixture', user };
@@ -44,7 +44,10 @@ async function main() {
     await visible('Escribe una fecha válida con formato AAAA-MM-DD.').waitFor();
     assert.equal(writes, 0);
     await fecha.fill('2026-10-16'); await button('Consultar fecha').click();
-    await page.getByRole('checkbox', { name: 'Presente: Luis Prueba', exact: true }).click();
+    const checkbox = page.getByRole('checkbox', { name: 'Presente: Luis Prueba', exact: true });
+    assert.equal(await checkbox.isChecked(), true);
+    await checkbox.click();
+    assert.equal(await checkbox.isChecked(), false);
     await visible('1 presentes · 1 ausentes').waitFor();
     await button('Revisar asistencia').click(); assert.equal(writes, 0);
     await button('Confirmar asistencia').click();
