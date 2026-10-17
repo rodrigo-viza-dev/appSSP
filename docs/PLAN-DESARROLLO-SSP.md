@@ -255,7 +255,7 @@ El incremento 5 incorpora el módulo docente y de administración: aulas, seguim
 
 El incremento 6 agrega consulta y guardado confirmado de asistencia académica por fecha, explicando los valores presentes por defecto del backend. Ver [INCREMENTO-06.md](INCREMENTO-06.md).
 
-El backend público anterior no ofrece creación de tareas ni el circuito actualizado de horas; estas capacidades se desarrollan y verifican en la rama de pruebas. Para habilitar entregas con archivos, resolver almacenamiento persistente y completar sus reglas. La asistencia se actualiza en esta misma rama; el padrón histórico por sesión y su pantalla de auditoría siguen pendientes.
+El backend público anterior no ofrece creación de tareas ni el circuito actualizado de horas; estas capacidades se desarrollan y verifican en la rama de pruebas. Para habilitar entregas con archivos, resolver almacenamiento persistente y completar sus reglas. La asistencia se actualiza en esta misma rama; el padrón histórico por sesión sigue pendiente.
 
 El usuario autorizó clonar el backend en paralelo, usar su Supabase vacío para pruebas y subir mejoras del backend. El incremento 7 prepara ese entorno y el arranque web contra FastAPI local. El incremento 8 comprueba la conexión, el aislamiento y el recorrido real de calificación, asistencia y lectura de avisos; también corrige el estado accesible de las casillas de asistencia en web. Ver [INCREMENTO-07.md](INCREMENTO-07.md) e [INCREMENTO-08.md](INCREMENTO-08.md).
 
@@ -264,3 +264,5 @@ El incremento 9 incorpora la bitácora real ALUMNO/SUPERVISOR, registro pendient
 El incremento 10 habilita publicación docente y entrega escrita del alumno, conectadas a la revisión/calificación existente. Comprueba capacidades del servidor y permisos por aula, y evita duplicados al reintentar. Ver [INCREMENTO-10.md](INCREMENTO-10.md). Archivos persistentes, edición/reemplazos y excepciones de plazo siguen pendientes.
 
 El incremento 11 distingue propuestas y asistencia guardada, valida el padrón, detecta revisiones obsoletas y registra auditoría transaccional conservando el historial de retirados. Ver [INCREMENTO-11.md](INCREMENTO-11.md). El servidor público anterior queda disponible para consulta de asistencia; las escrituras requieren la versión actualizada.
+
+El incremento 12 incorpora la consulta de auditoría ADMIN con filtros, búsqueda y detalle de asistencia por estudiante. Reutiliza endpoints existentes y solo consulta datos. Ver [INCREMENTO-12.md](INCREMENTO-12.md). La paginación del historial y la auditoría de revisiones de horas siguen pendientes.
