@@ -14,7 +14,7 @@ function Navigation() {
     <Stack.Protected guard={!session && !demo}><Stack.Screen name="index" /></Stack.Protected>
     <Stack.Protected guard={!!session}><Stack.Screen name="panel" /><Stack.Screen name="mis-avisos" /><Stack.Screen name="metas" /><Stack.Screen name="guia" /></Stack.Protected>
     <Stack.Protected guard={!!session && session.user.role !== 'SUPERVISOR'}><Stack.Screen name="comunidad" /><Stack.Screen name="foro" /></Stack.Protected>
-    <Stack.Protected guard={session?.user.role === 'ADMIN'}><Stack.Screen name="auditoria" /></Stack.Protected>
+    <Stack.Protected guard={session?.user.role === 'ADMIN'}><Stack.Screen name="auditoria" /><Stack.Screen name="administracion" /><Stack.Screen name="administrar-aula" /><Stack.Screen name="reportes" /></Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'ALUMNO' || session?.user.role === 'SUPERVISOR'}><Stack.Screen name="mis-horas" /></Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'ALUMNO'}>
       <Stack.Screen name="aula" />
@@ -27,6 +27,7 @@ function Navigation() {
       <Stack.Screen name="aula-docente" />
       <Stack.Screen name="revisar-entrega" />
       <Stack.Screen name="asistencia-docente" />
+      <Stack.Screen name="seguimiento" />
     </Stack.Protected>
     <Stack.Protected guard={demo && !session}>
       <Stack.Screen name="(tabs)" />

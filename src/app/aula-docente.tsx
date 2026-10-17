@@ -65,6 +65,7 @@ export default function AulaDocenteScreen() {
             <Text style={typography.title}>{v.alumnoNombre}</Text><Text style={typography.body}>{v.alumnoEmail}</Text>
             <Label>AVANCE ACADÉMICO</Label><Text style={typography.body}>{v.progreso}% · Semana {v.semanaActual} de {v.semanasTotales}</Text>
             <Text style={typography.body}>{v.tareasEntregadas} de {v.tareasTotal} tareas entregadas</Text>
+            <Button title={`Seguimiento: ${v.alumnoNombre}`} secondary onPress={() => router.push({ pathname: '/seguimiento', params: { aulaId: id, alumnoId: v.alumnoId } })} />
           </Card>)}
           <Button title="Actualizar estudiantes" secondary disabled={alumnos.loading} onPress={alumnos.retry} />
         </>}

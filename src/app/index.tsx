@@ -1,5 +1,5 @@
 import { useAuth } from '@/state/auth';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Screen } from '@/components/screen';
@@ -13,6 +13,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [ready, setReady] = useState(false);
+  useEffect(() => { setReady(true); }, []);
   function signIn() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setMessage('Ingresa un correo válido.'); return; }
     if (!password) { setMessage('Ingresa tu contraseña.'); return; }
@@ -28,11 +30,11 @@ export default function LoginScreen() {
     </View></SafeAreaView>
     <Screen>
       <View style={{ gap: 8 }}><Text style={typography.title}>Bienvenido a tus prácticas</Text><Text style={typography.body}>Tu experiencia profesional, paso a paso.</Text></View>
-      <Field label="Correo de tu cuenta SSP" value={email} onChangeText={setEmail} placeholder="alumno@unsa.edu.pe" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
-      <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="Ingresa tu contraseña" secureTextEntry autoComplete="current-password" />
+      <Field label="Correo de tu cuenta SSP" value={email} editable={ready && !busy} onChangeText={setEmail} placeholder="alumno@unsa.edu.pe" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
+      <Field label="Contraseña" value={password} editable={ready && !busy} onChangeText={setPassword} placeholder="Ingresa tu contraseña" secureTextEntry autoComplete="current-password" />
       {authMessage !== '' && <Text accessibilityRole="alert" style={typography.error}>{authMessage}</Text>}
       {message !== '' && <Text accessibilityRole="alert" style={typography.error}>{message}</Text>}
-      <Button title={busy ? "Ingresando…" : "Ingresar"} disabled={busy} onPress={signIn} />
+      <Button title={busy ? "Ingresando…" : "Ingresar"} disabled={!ready || busy} onPress={signIn} />
       <Pressable accessibilityRole="button" style={s.recovery} onPress={() => setMessage('El backend aún no envía correos de recuperación. Solicita ayuda al administrador del SSP.')}><Text style={s.link}>¿Olvidaste tu contraseña?</Text></Pressable>
       <View style={s.demo}><Text style={s.demoText}>CONOCE LA APLICACIÓN</Text><Button title="Explorar demo" disabled={busy} secondary onPress={enterDemo} /></View>
       <Text style={s.footer}>UNSA · Escuela Profesional de Ciencias de la Comunicación</Text>

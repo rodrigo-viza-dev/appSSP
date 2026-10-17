@@ -4,7 +4,7 @@ import { Button, Card, Field, typography } from '@/components/ui';
 import { ApiError } from '@/services/api';
 import { useAuth } from '@/state/auth';
 
-export type ContentField = { key: string; label: string; multiline?: boolean; numeric?: boolean; max?: number; choices?: { value: string; label: string }[] };
+export type ContentField = { key: string; label: string; readOnly?: boolean; multiline?: boolean; numeric?: boolean; max?: number; choices?: { value: string; label: string }[] };
 // Se conserva la misma clave y el mismo contenido durante un reintento.
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 export function ContentForm({ title, fields, initial, confirm, validate, submit, onSaved, refresh, onBusy }: {
@@ -41,7 +41,7 @@ export function ContentForm({ title, fields, initial, confirm, validate, submit,
       <Button title={busy ? 'Guardando…' : uncertain ? 'Reintentar la misma solicitud' : confirm} disabled={busy} onPress={() => void save()} />
       {!uncertain && <Button title="Volver a editar" secondary disabled={busy} onPress={() => setReview(false)} />}
     </> : <>
-      {fields.map(f => f.choices ? <View key={f.key} style={{ gap: 8 }}><Text style={typography.body}>{f.label}</Text>{f.choices.map(c => <Button key={c.value} title={c.label} secondary={values[f.key] !== c.value} onPress={() => setValues(v => ({ ...v, [f.key]: c.value }))} />)}</View> : <Field key={f.key} label={f.label} value={values[f.key] ?? ''} multiline={f.multiline} keyboardType={f.numeric ? 'number-pad' : 'default'} maxLength={f.max} onChangeText={text => setValues(v => ({ ...v, [f.key]: text }))} />)}
+      {fields.map(f => f.readOnly ? <View key={f.key}><Text style={typography.body}>{f.label}</Text><Text style={typography.title}>{values[f.key]}</Text></View> : f.choices ? <View key={f.key} style={{ gap: 8 }}><Text style={typography.body}>{f.label}</Text>{f.choices.map(c => <Button key={c.value} title={c.label} secondary={values[f.key] !== c.value} onPress={() => setValues(v => ({ ...v, [f.key]: c.value }))} />)}</View> : <Field key={f.key} label={f.label} value={values[f.key] ?? ''} multiline={f.multiline} keyboardType={f.numeric ? 'number-pad' : 'default'} maxLength={f.max} onChangeText={text => setValues(v => ({ ...v, [f.key]: text }))} />)}
       <Button title="Revisar antes de guardar" onPress={prepare} />
     </>}
   </Card>;
