@@ -19,6 +19,8 @@ Para dispositivos, ejecutar `npm start` y escanear el QR con una versión compat
 
 La URL predeterminada es `https://back-cs-de-la-com.vercel.app`. Para cambiarla, copiar `.env.example` a `.env.local` y ajustar `EXPO_PUBLIC_API_URL`, sin `/api/v1`. Reiniciar Expo después de cambiar la configuración. Las variables `EXPO_PUBLIC_` son públicas; no deben contener contraseñas ni secretos.
 
+Para el entorno local de Supabase de prueba, preparar el backend paralelo y ejecutar `npm run web:pruebas`. El comando comprueba la API local antes de arrancar Expo y mantiene el backend habitual como opción separada. Ver [preparación del entorno de prueba](docs/INCREMENTO-07.md).
+
 ## Verificación
 
 Con Node/npm de Windows:
