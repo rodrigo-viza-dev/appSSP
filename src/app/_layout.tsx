@@ -12,7 +12,7 @@ function Navigation() {
   const { demo } = usePractice();
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
     <Stack.Protected guard={!session && !demo}><Stack.Screen name="index" /></Stack.Protected>
-    <Stack.Protected guard={!!session}><Stack.Screen name="panel" /><Stack.Screen name="mis-avisos" /><Stack.Screen name="metas" /><Stack.Screen name="guia" /></Stack.Protected>
+    <Stack.Protected guard={!!session}><Stack.Screen name="panel" /><Stack.Screen name="mis-avisos" /><Stack.Screen name="metas" /><Stack.Screen name="guia" /><Stack.Screen name="expedientes" /><Stack.Screen name="expediente" /></Stack.Protected>
     <Stack.Protected guard={!!session && session.user.role !== 'SUPERVISOR'}><Stack.Screen name="comunidad" /><Stack.Screen name="foro" /></Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'ADMIN'}><Stack.Screen name="auditoria" /><Stack.Screen name="administracion" /><Stack.Screen name="administrar-aula" /><Stack.Screen name="reportes" /></Stack.Protected>
     <Stack.Protected guard={session?.user.role === 'ALUMNO' || session?.user.role === 'PROFESOR'}><Stack.Screen name="mensajes" /><Stack.Screen name="conversacion" /></Stack.Protected>

@@ -29,6 +29,7 @@ export default function StudentFollowupScreen() {
         {data.entregas.length === 0 && <Text style={typography.body}>Todavía no hay tareas definidas para esta aula.</Text>}
         {data.entregas.map((e, i) => <Card key={i}><Text style={typography.title}>{e.tareaTitulo}</Text><Badge title={e.estado.replaceAll('_', ' ')} tone={e.nota === null ? 'warning' : 'success'} /><Text style={typography.body}>Nota: {e.nota === null ? 'Sin calificar' : `${e.nota} / 20`}</Text><Text style={typography.body}>{e.retroalimentacion || 'Sin retroalimentación registrada.'}</Text></Card>)}
         <Button title="Consultar metas de prácticas" secondary onPress={() => router.push('/metas')} />
+        <Button title="Consultar evaluación y cierre de prácticas" onPress={() => router.push({ pathname: '/expedientes', params: { aulaId, alumnoId } })} />
       </>}
       <Button title="Actualizar seguimiento" secondary disabled={query.loading} onPress={query.retry} />
     </Screen>

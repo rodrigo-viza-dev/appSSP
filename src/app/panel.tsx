@@ -40,6 +40,7 @@ export default function PanelScreen() {
       {session.user.role === 'ADMIN' && <Card><Text style={typography.title}>Operación académica</Text><Text style={typography.body}>Gestiona aulas, responsables y acceso de estudiantes; consulta el estado del programa.</Text><Button title="Administración académica" onPress={() => router.push('/administracion')} /><Button title="Reporte institucional" secondary onPress={() => router.push('/reportes')} /></Card>}
       {(session.user.role === 'PROFESOR' || session.user.role === 'ADMIN') && <Button title="Mis aulas · Docencia" onPress={() => router.push('/docencia')} />}
       {(session.user.role === 'ALUMNO' || session.user.role === 'SUPERVISOR') && <Button title={session.user.role === 'ALUMNO' ? 'Mi bitácora de prácticas' : 'Validar horas de prácticas'} onPress={() => router.push('/mis-horas')} />}
+      <Card><Text style={typography.title}>Evaluación y cierre de prácticas</Text><Text style={typography.body}>Consulta los requisitos, la evaluación del supervisor y el expediente de cada práctica.</Text><Button title={session.user.role === 'SUPERVISOR' ? 'Evaluar practicantes y ver expedientes' : session.user.role === 'ALUMNO' ? 'Mi expediente de prácticas' : 'Expedientes y cierre de prácticas'} onPress={() => router.push('/expedientes')} /></Card>
       {(session.user.role === 'ALUMNO' || session.user.role === 'PROFESOR') && <Button title="Mensajes académicos" secondary onPress={() => router.push('/mensajes')} />}
       <Card><Text style={typography.title}>Seguimiento y comunidad</Text><Text style={typography.body}>Consulta objetivos de producción, comunicados y conversaciones de tu aula.</Text>
         <Button title="Metas de prácticas" secondary onPress={() => router.push('/metas')} />
@@ -57,7 +58,7 @@ export default function PanelScreen() {
         {data.aulas.map(aula => <Card key={aula.id}><Text style={typography.title}>{aula.nombre}</Text><Text style={typography.body}>{aula.profesorNombre} · {aula.ciclo}</Text><Badge title={aula.estado === 'ACTIVA' ? 'Activa' : 'Concluida'} tone="neutral" /><Button title={`Abrir aula: ${aula.nombre}`} secondary onPress={() => router.push({ pathname: '/aula', params: { id: aula.id } })} /></Card>)}
       </>}
       {data && data.kind !== 'ALUMNO' && <><Text style={typography.title}>Resumen</Text>{data.metrics.map(metric => <Card key={metric.label}><Text style={typography.body}>{metric.label}</Text><Text style={typography.title}>{metric.value ?? 'Sin datos'}</Text></Card>)}</>}
-      {session.user.role === 'SUPERVISOR' && <Text style={typography.body}>La bitácora permite revisar horas cuando el servidor tiene habilitado el circuito actualizado. La evaluación final sigue pendiente.</Text>}
+      {session.user.role === 'SUPERVISOR' && <Text style={typography.body}>Completa la evaluación desde el expediente del practicante. El cierre lo autoriza el docente después de revisar los requisitos.</Text>}
       <Button title="Actualizar datos" secondary disabled={loading} onPress={() => setAttempt(value => value + 1)} />
       <Text style={typography.body}>Por ahora, cerrar o recargar la app termina la sesión.</Text>
       <Button title="Cerrar sesión" onPress={() => signOut()} />

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -16,10 +16,11 @@ import { colors } from '@/theme';
 export default function HoursScreen() {
   const { session } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ practicaId?: string }>();
   const supervisor = session?.user.role === 'SUPERVISOR';
   const enabled = supervisor || session?.user.role === 'ALUMNO';
   const practices = useSessionQuery('practicas-horas', useCallback(getPracticasHoras, []), enabled);
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState(typeof params.practicaId === 'string' ? params.practicaId : '');
   const [editing, setEditing] = useState('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -37,6 +38,7 @@ export default function HoursScreen() {
       {(practices.data?.length ?? 0) > 1 && practices.data!.map(p => <Button key={p.id} title={`Ver práctica: ${p.practicanteNombre} · ${p.aulaNombre}`} secondary={p.id !== id} disabled={busy} onPress={() => { setSelected(p.id); setEditing(''); setNotice(''); }} />)}
       {practica && <>
         <Card><Text style={typography.title}>{practica.aulaNombre}</Text><Text style={typography.body}>{practica.practicanteNombre} · {practica.periodo}</Text><Badge title={practica.estado.replaceAll('_', ' ')} tone="neutral" /></Card>
+        <Button title={supervisor ? 'Evaluar practicante y consultar expediente' : 'Consultar requisitos y expediente'} secondary disabled={busy} onPress={() => router.push({ pathname: '/expediente', params: { practicaId: id } })} />
         {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
         <QueryFeedback {...hours} notFound="La bitácora no está disponible para tu cuenta." />
         {hours.data && <>

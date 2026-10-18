@@ -14,7 +14,13 @@ export async function request<T>(path: string, token?: string, body?: unknown, s
     const response = await fetch(`${API_URL}/api/v1${path}`, { method: options?.method ?? (body === undefined ? 'GET' : 'POST'), signal: controller.signal,
       headers: { Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
-    if (!response.ok) throw new ApiError(response.status, response.status === 401 ? (path === '/auth/login' ? 'Correo o contraseña incorrectos para este entorno. Revisa la cuenta SSP que estás usando.' : 'Tu sesión venció. Ingresa nuevamente.') : response.status === 403 ? 'No tienes permiso para esta acción.' : 'El servidor no pudo completar la solicitud. Intenta nuevamente.');
+    if (!response.ok) {
+      let detail = '';
+      if ([400, 404, 409, 413, 422].includes(response.status)) {
+        try { const value: unknown = await response.json(); if (value && typeof value === 'object' && 'detail' in value && typeof value.detail === 'string') detail = value.detail.slice(0, 1500); } catch { /* Se conserva el mensaje general si la respuesta no es JSON. */ }
+      }
+      throw new ApiError(response.status, response.status === 401 ? (path === '/auth/login' ? 'Correo o contraseña incorrectos para este entorno. Revisa la cuenta SSP que estás usando.' : 'Tu sesión venció. Ingresa nuevamente.') : response.status === 403 ? 'No tienes permiso para esta acción.' : detail || 'El servidor no pudo completar la solicitud. Intenta nuevamente.');
+    }
     if (options?.expectedStatus !== undefined && response.status !== options.expectedStatus) throw new ApiError(502, 'El servidor devolvió una respuesta no compatible. Actualiza los datos.');
     return response.status === 204 ? undefined as T : await response.json() as T;
   } catch (error) {

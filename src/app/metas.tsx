@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -14,7 +14,8 @@ import { colors } from '@/theme';
 
 export default function GoalsScreen() {
   const router = useRouter(), { session } = useAuth();
-  const [selected, setSelected] = useState(''), [search, setSearch] = useState(''), [filter, setFilter] = useState<'all' | 'pending' | 'done'>('all');
+  const params = useLocalSearchParams<{ practicaId?: string }>();
+  const [selected, setSelected] = useState(typeof params.practicaId === 'string' ? params.practicaId : ''), [search, setSearch] = useState(''), [filter, setFilter] = useState<'all' | 'pending' | 'done'>('all');
   const [creating, setCreating] = useState(false), [editing, setEditing] = useState(''), [busy, setBusy] = useState(false), [notice, setNotice] = useState('');
   const practices = useSessionQuery('metas-practicas', useCallback(getPracticasMetas, []), !!session);
   const practica = practices.data?.find(p => p.id === selected) ?? practices.data?.[0];
@@ -33,6 +34,7 @@ export default function GoalsScreen() {
       {(practices.data?.length ?? 0) > 1 && practices.data!.map(p => <Button key={p.id} title={`Metas: ${p.practicanteNombre} · ${p.aulaNombre}`} secondary={p.id !== id} disabled={busy} onPress={() => { setSelected(p.id); setCreating(false); setEditing(''); setNotice(''); }} />)}
       {practica && <>
         <Card><Text style={typography.title}>{practica.practicanteNombre}</Text><Text style={typography.body}>{practica.aulaNombre} · {practica.periodo}</Text><Badge title={practica.estado.replaceAll('_', ' ')} tone="neutral" /></Card>
+        <Button title="Ver requisitos y expediente de esta práctica" secondary disabled={busy} onPress={() => router.push({ pathname: '/expediente', params: { practicaId: id } })} />
         <Text style={typography.body}>El docente define los objetivos y registra la producción que ha revisado. Las metas de horas se actualizan desde las horas validadas de la bitácora.</Text>
         <QueryFeedback {...query} notFound="Las metas no están disponibles para tu cuenta." />
         {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
