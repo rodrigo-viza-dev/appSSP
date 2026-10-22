@@ -41,4 +41,6 @@ Después de migrar a Windows se ejecutaron npm ci, typecheck y export:web correc
 
 El usuario ya revisó la app con Expo Go y quiere explorar una propuesta visual en Replit antes de incorporarla al proyecto. El [brief para Replit](BRIEF-DISENO-REPLIT.md) reúne identidad, navegación propuesta, cuatro roles, reglas funcionales y requisitos de Android. Se empieza por ingreso, inicio y bitácora con datos ficticios. La composición y tipografía nuevas se decidirán tras esa revisión; el granate institucional se conserva.
 
+Tras revisar las dos propuestas nuevas de Inicio, el siguiente trabajo compartido usa FigJam/Figma y referencias de Mobbin. El [mapa de navegación](MAPA-NAVEGACION.md) concreta la propuesta del alumno, el esqueleto de los otros roles y el primer recorrido de pantallas. Se propone combinar la jerarquía de próxima tarea con el resumen compacto de horas; todavía no cambia la interfaz implementada.
+
 La comprobación del APK y Google nativo sigue pendiente. Conviene hacer una primera prueba cuando se integre el recorrido principal elegido y repetir la revisión del APK candidato antes del piloto; no asumir que la representación en Expo Go verifica el acceso nativo.

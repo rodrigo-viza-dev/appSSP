@@ -23,7 +23,7 @@ Trabajar únicamente en presentación, navegación y estados simulados. No confi
 
 El inicio del alumno debe permitir entender su avance y decidir su siguiente acción: horas validadas, pendientes de revisión, próxima entrega y acceso a registrar actividad. Dar prioridad a esa información y agrupar los módulos secundarios.
 
-Propuesta inicial de cinco destinos para el alumno: **Inicio, Bitácora, Aulas, Avisos y Más**. "Registrar actividad" es una acción dentro del contexto, no una pestaña. Más reúne centro/supervisor, metas, expediente, documentos, mensajes, comunidad, borradores, guía y cuenta, mediante agrupaciones claras. Se puede proponer otra organización si se conservan accesos y permisos.
+Propuesta inicial de cinco destinos para el alumno: **Inicio, Bitácora, Aulas, Avisos y Más**. "Registrar actividad" es una acción dentro del contexto, no una pestaña. Documentos y comunidad pertenecen al aula correspondiente. Más agrupa mi práctica (centro/supervisor, metas y expediente), mensajes, borradores, guía y cuenta. Consultar el [mapa de navegación por roles y trabajo en Figma](MAPA-NAVEGACION.md) para el detalle más reciente. Se puede proponer otra organización si se conservan accesos y permisos.
 
 Las pantallas de detalle deben conservar el contexto al volver, con títulos claros y comportamiento coherente del botón Atrás de Android. Los otros roles necesitan destinos propios según sus tareas.
 

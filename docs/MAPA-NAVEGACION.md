@@ -1,0 +1,101 @@
+# PrácticasCC · Propuesta de navegación y trabajo en Figma
+
+Estado: propuesta para revisar. Conserva los módulos y permisos existentes; todavía no cambia la navegación de la app. La primera implementación se centrará en el alumno.
+
+## Mapa del alumno para FigJam
+
+Cada bloque principal es una pestaña. Los bloques siguientes son pantallas de detalle o grupos de opciones, no pestañas adicionales. El ingreso precede a este mapa y la demo mantiene su acceso separado.
+
+```mermaid
+flowchart TD
+    IN["Sesión de alumno"] --> H["Inicio"]
+    IN --> B["Bitácora"]
+    IN --> A["Aulas"]
+    IN --> N["Avisos"]
+    IN --> M["Más"]
+
+    H --> H1["Próxima entrega y acción del día"]
+    H --> H2["Horas validadas y pendientes"]
+    H --> H3["Borradores por enviar, cuando existan"]
+
+    B --> B1["Actividades y filtros"]
+    B1 --> B2["Detalle, observación e historial"]
+    B --> B3["Registrar o corregir actividad"]
+
+    A --> A1["Aula seleccionada"]
+    A1 --> A2["Tareas y calificaciones"]
+    A2 --> A3["Tarea: entrega, adjuntos y versiones"]
+    A1 --> A4["Documentos y materiales"]
+    A1 --> A5["Comunidad: anuncios y foros"]
+
+    N --> N1["Lista de avisos"]
+    N1 -.->|"Abrir recurso exacto"| A3
+    N1 -.->|"Abrir revisión"| B2
+
+    M --> M1["Mi práctica"]
+    M1 --> M11["Centro y supervisor"]
+    M1 --> M12["Metas"]
+    M1 --> M13["Expediente y requisitos"]
+    M --> M2["Mensajes con docentes"]
+    M --> M3["Borradores y envíos pendientes"]
+    M --> M4["Guía y cuenta"]
+    M4 --> M41["Perfil de sesión y cerrar sesión"]
+```
+
+La próxima entrega abre su tarea, registrar actividad abre su formulario y el resumen de horas abre la bitácora. Borradores permite retomar tanto actividades como respuestas de tareas. El expediente conserva su selección de práctica cuando corresponda.
+
+## Esqueleto de los cuatro roles
+
+| Rol | Destinos principales propuestos | Organización interior |
+| --- | --- | --- |
+| Alumno | Inicio · Bitácora · Aulas · Avisos · Más | Mapa anterior. |
+| Docente | Inicio · Aulas · Seguimiento · Avisos · Más | Aula: tareas, entregas, notas, asistencia académica, materiales y comunidad. Seguimiento por aula/alumno con acceso a metas y expediente. Más: mensajes, guía y cuenta. |
+| Supervisor | Inicio · Practicantes · Horas · Avisos · Más | Practicantes vinculados: evaluación y expediente. Horas: revisión e historial. Más: metas de sus prácticas, guía y cuenta. |
+| Administración | Inicio · Gestión · Reportes · Avisos · Más | Gestión: usuarios/roles, aulas/matrículas, asignaciones/supervisores, auditoría y operaciones docentes/expedientes autorizadas. Más: guía y cuenta. |
+
+Son agrupaciones de presentación. Las pantallas que necesitan aula, alumno o práctica deben ofrecer primero esa selección; no se presupone un endpoint global nuevo. Los datos y las acciones siguen limitados por los permisos del servidor. La mensajería privada corresponde a alumno/docente; el supervisor no autoriza el cierre.
+
+## Comportamientos que debemos dibujar y comprobar
+
+1. Cada pestaña conserva filtros, posición e historial al cambiar de sección.
+2. Un acceso desde Inicio o Avisos tiene un destino y un retorno definidos. Al abrir una tarea desde un aviso, registrar de dónde se abrió y comprobar Atrás; no asumir que todos los enlaces vuelven automáticamente al origen.
+3. Un formulario permite guardar borrador o confirmar antes de descartar cambios. El teclado no impide editar ni alcanzar la acción final.
+4. Un envío distingue contenido local, envío en curso, recibido y error. Los borradores confirmados se envían mediante la acción explícita existente.
+5. Una práctica sin asignación, un aula vacía, una sesión vencida o un permiso retirado muestran un estado comprensible y una salida útil.
+6. Los avisos abren el recurso indicado; un recurso que ya no está disponible explica el resultado. Las acciones importantes incluyen la revisión o confirmación correspondiente.
+
+## Primer recorrido visual
+
+Base propuesta: `Inicio-Pr-xima-tarea-primero.png`, con resumen compacto de `Inicio-Avance-primero.png`. Mantener el orden estable: cabecera, próxima entrega, registrar actividad, horas y pendientes relevantes. Corregir unidades partidas, fechas repetidas y accesos redundantes. El avance hacia la meta usa horas validadas; una distribución de registradas no equivale al cumplimiento de la meta.
+
+Primeras seis pantallas para desarrollar con un mismo sistema visual: **Inicio, Bitácora, Registrar actividad, Aulas, Detalle de tarea y Más**. Preparar además los estados de carga, vacío, error y borrador de esos recorridos. Después extender a ingreso, avisos y módulos secundarios; los otros roles reutilizan componentes y conservan sus diferencias de responsabilidad.
+
+## Trabajo compartido
+
+**El usuario aporta referencias y criterio:** elegir hasta seis capturas o enlaces, con una frase por referencia que explique qué le resulta claro o atractivo. Las dos propuestas de Inicio ya cuentan como dirección visual, así que las referencias nuevas deben ayudar principalmente con navegación y estados interiores.
+
+En Mobbin, buscar tres pares de referencias:
+
+| Buscar | Qué necesitamos observar |
+| --- | --- |
+| `navigation`, `profile`, `settings` | Navegación inferior y una pantalla de Más/Cuenta con secciones comprensibles. |
+| `activity`, `task list`, `filter` | Lista de actividades/tareas y filtros que no oculten el contexto. |
+| `form`, `task details`, `confirmation` | Formulario largo con teclado y un detalle/envío con estado claro. |
+
+**Codex prepara y adapta:** inventario de pantallas, mapa por roles, componentes reutilizables y conexión al flujo existente. Las referencias orientan el diseño; las decisiones de agrupación se revisan con los recorridos reales.
+
+## Archivos de Figma sugeridos
+
+- FigJam: **PrácticasCC · Navegación**, con cuatro secciones por rol; comenzar por el mapa de alumno anterior.
+- Figma Design: **PrácticasCC · Diseño móvil**, con tres páginas: **Referencias**, **Componentes** y **Pantallas**.
+- Referencias: colocar las dos imágenes de Inicio y las capturas elegidas, anotando qué se toma de cada una. Las imágenes son referencia; los controles del diseño se construyen como capas editables.
+- Componentes: granate `#5E151D`, textos, espaciados y variantes de campos, acciones, etiquetas de estado, filas, tarjetas y navegación. Seguir los requisitos móviles del brief.
+- Pantallas: conectar primero los seis destinos del recorrido visual y sus estados. Comprobar en el teléfono textos largos, fuente ampliada, teclado y botón Atrás.
+
+La integración de Figma debe estar instalada y autorizada antes de usar herramientas sobre la cuenta del usuario. Un enlace por sí solo no confirma acceso. Si no hay conexión, este documento permite continuar el mapa y revisar capturas/exportaciones.
+
+## Comprobación con usuarios
+
+Pedir a un alumno que encuentre y complete, sin explicarle dónde tocar: registrar actividad; corregir una rechazada; localizar y entregar una tarea; retomar un borrador; consultar requisitos del expediente. Observar el primer destino que elige, desvíos y si comprende el estado final. Ajustar nombres y agrupaciones a partir de esos resultados.
+
+Fuentes: [FigJam](https://www.figma.com/figjam/), [prototipos en Figma](https://help.figma.com/hc/en-us/articles/360040314193-Guide-to-prototyping-in-Figma), [Mobbin](https://mobbin.com/). Complemento: [brief de diseño](BRIEF-DISENO-REPLIT.md).
