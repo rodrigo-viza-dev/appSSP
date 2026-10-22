@@ -15,7 +15,7 @@ function invalid(): never { throw new ApiError(502, 'La respuesta administrativa
 function admin(s: Session) { if (s.user.role !== 'ADMIN') throw new ApiError(403, 'Sección exclusiva de administración.'); }
 function list<T>(v: unknown, parse: (v: unknown) => T): T[] { if (!Array.isArray(v)) invalid(); return v.map(parse); }
 function user(v: unknown): UsuarioAdmin {
-  if (!object(v) || !text(v.id) || !text(v.nombres) || !text(v.apellidos) || !text(v.email) || !roleChoices.some(r => r.value === v.role) || !text(v.createdAt) || !Number.isFinite(Date.parse(v.createdAt))) invalid();
+  if (!object(v) || !text(v.id) || !text(v.nombres) || typeof v.apellidos !== 'string' || !text(v.email) || !roleChoices.some(r => r.value === v.role) || !text(v.createdAt) || !Number.isFinite(Date.parse(v.createdAt))) invalid();
   return v as UsuarioAdmin;
 }
 function aula(v: unknown): AulaDocente {

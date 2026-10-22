@@ -1,9 +1,9 @@
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://back-cs-de-la-com.vercel.app').replace(/\/$/, '');
-export const IS_LOCAL_API = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i.test(API_URL);
+export const IS_LOCAL_API = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/|$)/i.test(API_URL);
 export type Role = 'ALUMNO' | 'PROFESOR' | 'ADMIN' | 'SUPERVISOR';
 export type Session = { token: string; user: { id: string; nombres: string; apellidos: string; email: string; role: Role } };
 export class ApiError extends Error { constructor(public status: number, message: string) { super(message); } }
-export type RequestOptions = { method?: 'GET' | 'POST' | 'PUT'; expectedStatus?: number };
+export type RequestOptions = { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; expectedStatus?: number };
 export async function request<T>(path: string, token?: string, body?: unknown, signal?: AbortSignal, options?: RequestOptions): Promise<T> {
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -16,10 +16,10 @@ export async function request<T>(path: string, token?: string, body?: unknown, s
       ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
     if (!response.ok) {
       let detail = '';
-      if ([400, 404, 409, 413, 422].includes(response.status)) {
+      if ([400, 404, 409, 413, 422].includes(response.status) || path.startsWith('/auth/') && [401, 403, 428, 503].includes(response.status)) {
         try { const value: unknown = await response.json(); if (value && typeof value === 'object' && 'detail' in value && typeof value.detail === 'string') detail = value.detail.slice(0, 1500); } catch { /* Se conserva el mensaje general si la respuesta no es JSON. */ }
       }
-      throw new ApiError(response.status, response.status === 401 ? (path === '/auth/login' ? 'Correo o contraseña incorrectos para este entorno. Revisa la cuenta SSP que estás usando.' : 'Tu sesión venció. Ingresa nuevamente.') : response.status === 403 ? 'No tienes permiso para esta acción.' : detail || 'El servidor no pudo completar la solicitud. Intenta nuevamente.');
+      throw new ApiError(response.status, response.status === 401 ? (path === '/auth/login' ? 'Correo o contraseña incorrectos para este entorno. Revisa la cuenta SSP que estás usando.' : path === '/auth/google' ? detail || 'Google no pudo verificar esta cuenta.' : 'Tu sesión venció. Ingresa nuevamente.') : response.status === 403 ? detail || 'No tienes permiso para esta acción.' : detail || 'El servidor no pudo completar la solicitud. Intenta nuevamente.');
     }
     if (options?.expectedStatus !== undefined && response.status !== options.expectedStatus) throw new ApiError(502, 'El servidor devolvió una respuesta no compatible. Actualiza los datos.');
     return response.status === 204 ? undefined as T : await response.json() as T;

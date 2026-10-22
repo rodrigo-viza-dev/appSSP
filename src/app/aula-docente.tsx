@@ -45,6 +45,7 @@ export default function AulaDocenteScreen() {
         <Button title="Gestionar metas de prácticas" secondary onPress={() => router.push('/metas')} />
         <Button title="Tomar asistencia académica" secondary onPress={() => router.push({ pathname: '/asistencia-docente', params: { aulaId: id } })} />
         <Button title="Publicar y consultar tareas" secondary onPress={() => router.push({ pathname: '/tareas-docente', params: { aulaId: id } })} />
+        <Button title="Documentos y materiales del aula" secondary onPress={() => router.push({ pathname: '/documentos', params: { aulaId: id } })} />
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {(['entregas', 'alumnos', 'libro'] as const).map(value => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: section === value }} onPress={() => { setSection(value); setSearch(''); }} style={{ flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: section === value ? colors.primary : colors.white }}><Text style={{ color: section === value ? colors.white : colors.primary, fontWeight: '600' }}>{value === 'entregas' ? 'Entregas' : value === 'alumnos' ? 'Alumnos' : 'Notas'}</Text></Pressable>)}
         </View>

@@ -2,11 +2,13 @@ import { ApiError, request, type Aula, type Session } from './api';
 
 export type AulaDetalle = Aula & { progreso: number; semanaActual: number; semanasTotales: number };
 export type Entrega = {
+  revision?: number;
   id: string; tareaId: string; alumnoId: string; descripcion: string; comentario: string;
   archivoId: string | null; estado: string; nota: number | null;
   retroalimentacion: string | null; createdAt: string;
 };
 export type Tarea = {
+  revision?: number;
   id: string; aulaId: string; titulo: string; descripcion: string;
   fechaLimite: string | null; createdAt: string; entrega: Entrega | null;
 };

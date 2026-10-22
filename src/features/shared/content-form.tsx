@@ -4,7 +4,7 @@ import { Button, Card, Field, typography } from '@/components/ui';
 import { ApiError } from '@/services/api';
 import { useAuth } from '@/state/auth';
 
-export type ContentField = { key: string; label: string; readOnly?: boolean; multiline?: boolean; numeric?: boolean; max?: number; choices?: { value: string; label: string }[] };
+export type ContentField = { key: string; label: string; secret?: boolean; readOnly?: boolean; multiline?: boolean; numeric?: boolean; max?: number; choices?: { value: string; label: string }[] };
 // Se conserva la misma clave y el mismo contenido durante un reintento.
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
 export function ContentForm({ title, fields, initial, confirm, validate, submit, onSaved, refresh, onBusy }: {
@@ -36,12 +36,12 @@ export function ContentForm({ title, fields, initial, confirm, validate, submit,
   return <Card><Text style={typography.title}>{title}</Text>
     {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}
     {conflict ? <><Text style={typography.body}>Los datos cambiaron. Consulta el estado actual antes de preparar otra operación.</Text><Button title="Consultar datos actuales" onPress={refresh} /></> : review ? <>
-      {fields.map(f => <View key={f.key}><Text style={typography.body}>{f.label}</Text><Text style={typography.title}>{f.choices?.find(c => c.value === values[f.key])?.label ?? values[f.key]}</Text></View>)}
+      {fields.map(f => <View key={f.key}><Text style={typography.body}>{f.label}</Text><Text style={typography.title}>{f.secret ? 'Contraseña definida (oculta)' : f.choices?.find(c => c.value === values[f.key])?.label ?? values[f.key]}</Text></View>)}
       {uncertain && <Text style={typography.body}>El resultado no está confirmado. Reintentar envía la misma solicitud sin duplicarla.</Text>}
       <Button title={busy ? 'Guardando…' : uncertain ? 'Reintentar la misma solicitud' : confirm} disabled={busy} onPress={() => void save()} />
       {!uncertain && <Button title="Volver a editar" secondary disabled={busy} onPress={() => setReview(false)} />}
     </> : <>
-      {fields.map(f => f.readOnly ? <View key={f.key}><Text style={typography.body}>{f.label}</Text><Text style={typography.title}>{values[f.key]}</Text></View> : f.choices ? <View key={f.key} style={{ gap: 8 }}><Text style={typography.body}>{f.label}</Text>{f.choices.map(c => <Button key={c.value} title={c.label} secondary={values[f.key] !== c.value} onPress={() => setValues(v => ({ ...v, [f.key]: c.value }))} />)}</View> : <Field key={f.key} label={f.label} value={values[f.key] ?? ''} multiline={f.multiline} keyboardType={f.numeric ? 'number-pad' : 'default'} maxLength={f.max} onChangeText={text => setValues(v => ({ ...v, [f.key]: text }))} />)}
+      {fields.map(f => f.readOnly ? <View key={f.key}><Text style={typography.body}>{f.label}</Text><Text style={typography.title}>{values[f.key]}</Text></View> : f.choices ? <View key={f.key} style={{ gap: 8 }}><Text style={typography.body}>{f.label}</Text>{f.choices.map(c => <Button key={c.value} title={c.label} secondary={values[f.key] !== c.value} onPress={() => setValues(v => ({ ...v, [f.key]: c.value }))} />)}</View> : <Field key={f.key} label={f.label} value={values[f.key] ?? ''} secureTextEntry={f.secret} autoCapitalize={f.secret ? 'none' : undefined} multiline={f.multiline} keyboardType={f.numeric ? 'number-pad' : 'default'} maxLength={f.max} onChangeText={text => setValues(v => ({ ...v, [f.key]: text }))} />)}
       <Button title="Revisar antes de guardar" onPress={prepare} />
     </>}
   </Card>;

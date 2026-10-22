@@ -2,7 +2,7 @@ import { ApiError, request, type Session } from './api';
 
 export type AulaDocente = { id: string; nombre: string; codigo: string; descripcion: string; periodo: string; profesorId: string; profesorNombre: string; estado: 'ACTIVA' | 'CONCLUIDA'; inscritos: number };
 export type PracticanteDocente = { alumnoId: string; alumnoNombre: string; alumnoEmail: string; aulaId: string; aulaNombre: string; progreso: number; semanaActual: number; semanasTotales: number; estado: string; tareasEntregadas: number; tareasTotal: number };
-export type EntregaDocente = { id: string; tareaId: string; tareaTitulo: string; alumnoId: string; alumnoNombre: string; descripcion: string; comentario: string; archivoId: string | null; estado: string; nota: number | null; retroalimentacion: string | null; createdAt: string };
+export type EntregaDocente = { revision?: number; id: string; tareaId: string; tareaTitulo: string; alumnoId: string; alumnoNombre: string; descripcion: string; comentario: string; archivoId: string | null; estado: string; nota: number | null; retroalimentacion: string | null; createdAt: string };
 export type LibroDocente = { aulaId: string; aulaNombre: string; tareas: { id: string; titulo: string }[]; alumnos: { alumnoId: string; alumnoNombre: string; codigo: string; notas: Record<string, number | null>; promedio: number | null; asistenciaPct: number | null; horas: number }[]; promedioGeneral: number | null };
 
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -65,7 +65,7 @@ export function validateNota(nota: string) {
 export async function calificarEntrega(session: Session, entrega: EntregaDocente, nota: string, retroalimentacion: string, signal: AbortSignal): Promise<EntregaDocente> {
   docente(session);
   if (validateNota(nota)) throw new ApiError(400, validateNota(nota));
-  const body = { nota: Number(nota.trim()), retroalimentacion: retroalimentacion.trim() };
+  const body = { nota: Number(nota.trim()), retroalimentacion: retroalimentacion.trim(), revisionEntrega: entrega.revision ?? 0 };
   const data = await request<unknown>(`/profesor/entregas/${idPath(entrega.id)}/calificar`, session.token, body, signal, { method: 'PUT', expectedStatus: 200 });
   if (!isEntrega(data) || data.id !== entrega.id || data.tareaId !== entrega.tareaId || data.alumnoId !== entrega.alumnoId || data.estado !== 'CALIFICADA' || data.nota !== body.nota || data.retroalimentacion !== body.retroalimentacion) invalid();
   return data;

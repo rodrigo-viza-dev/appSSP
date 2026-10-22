@@ -11,6 +11,9 @@ import { QueryFeedback } from '@/components/query-feedback';
 import { useStudentQuery } from '@/features/shared/use-student-query';
 import { DeliveryPanel } from '@/features/tareas/delivery-panel';
 import { colors } from '@/theme';
+import { Attachment } from '@/components/attachment';
+import { DeliveryHistory } from '@/features/tareas/delivery-history';
+import { useAuth } from '@/state/auth';
 
 export default function TareaScreen() {
   const params = useLocalSearchParams<{ aulaId?: string | string[]; tareaId?: string | string[] }>();
@@ -18,6 +21,7 @@ export default function TareaScreen() {
   const tareaId = typeof params.tareaId === 'string' ? params.tareaId : '';
   const validLink = !!aulaId.trim() && !!tareaId.trim();
   const router = useRouter();
+  const { session } = useAuth();
   const load = useCallback((session: Session, signal: AbortSignal) => getTarea(session, aulaId, tareaId, signal), [aulaId, tareaId]);
   const query = useStudentQuery(`tarea:${JSON.stringify([aulaId, tareaId])}`, load, validLink);
   const tarea = query.data;
@@ -42,7 +46,7 @@ export default function TareaScreen() {
             <Text style={typography.body}>{tarea.entrega.descripcion || 'Entrega sin descripción.'}</Text>
             {!!tarea.entrega.comentario && <Text style={typography.body}>Tu comentario: {tarea.entrega.comentario}</Text>}
             <Text style={typography.body}>Enviada: {academicDate(tarea.entrega.createdAt, 'Fecha no disponible')}</Text>
-            {tarea.entrega.archivoId !== null && <Text style={typography.body}>Archivo adjunto registrado. Su descarga aún no está habilitada en esta app.</Text>}
+            {tarea.entrega.archivoId !== null && <Attachment aulaId={aulaId} id={tarea.entrega.archivoId} />}
           </Card>
           <Card>
             <Label>REVISIÓN DOCENTE</Label>
@@ -50,7 +54,8 @@ export default function TareaScreen() {
             <Text style={typography.body}>{tarea.entrega.retroalimentacion || 'Aún no hay observaciones del docente.'}</Text>
           </Card>
         </> : <Card><Text style={typography.body}>Todavía no tienes una entrega registrada para esta tarea.</Text></Card>}
-        {!tarea.entrega && (showDelivery ? <DeliveryPanel task={tarea} onBusy={setBusy} onSaved={() => { setNotice('Entrega guardada y confirmada por el servidor.'); query.retry(); }} /> : <Button title="Entregar respuesta escrita" onPress={() => setShowDelivery(true)} />)}
+        {(!tarea.entrega || tarea.entrega.estado !== 'CALIFICADA') && (showDelivery ? <DeliveryPanel key={`${tarea.id}:${tarea.entrega?.revision ?? 'nueva'}`} task={tarea} onBusy={setBusy} onSaved={() => { setShowDelivery(false); setNotice('Entrega guardada y confirmada por el servidor.'); query.retry(); }} /> : <Button title={tarea.entrega ? 'Reemplazar entrega sin calificar' : 'Entregar respuesta escrita'} onPress={() => setShowDelivery(true)} />)}
+        {!!tarea.entrega && !!session && <DeliveryHistory aulaId={aulaId} taskId={tareaId} alumnoId={session.user.id} revision={tarea.entrega.revision} />}
         <Button title="Actualizar tarea" secondary disabled={busy} onPress={query.retry} />
       </>}
     </Screen>

@@ -10,7 +10,7 @@ import { colors } from '@/theme';
 const roles = { ALUMNO: 'Practicante', PROFESOR: 'Docente', ADMIN: 'Administración', SUPERVISOR: 'Supervisor de empresa' };
 export default function PanelScreen() {
   const router = useRouter();
-  const { session, signOut } = useAuth();
+  const { session, signOut, offline } = useAuth();
   const notifications = useNotifications();
   const [data, setData] = useState<Dashboard | null>(null);
   const [error, setError] = useState('');
@@ -32,6 +32,8 @@ export default function PanelScreen() {
     <Header title={`Hola, ${session.user.nombres}`} subtitle={roles[session.user.role]} />
     <Screen>
       <Badge title="Cuenta SSP" tone="neutral" /><Text style={typography.body}>{session.user.email}</Text>
+      {offline && <Text style={typography.body}>Sin conexión al servidor. Puedes continuar tus borradores del dispositivo; los permisos y envíos se comprobarán al reconectar.</Text>}
+      {session.user.role === 'ALUMNO' && <Button title="Borradores y envíos pendientes" secondary onPress={() => router.push('/borradores')} />}
       <Card><Text style={typography.title}>Avisos de mi cuenta</Text>
         <Text accessibilityLiveRegion="polite" style={typography.body}>{notifications.loading ? 'Consultando avisos…' : notifications.error ? 'No se pudo consultar el estado de tus avisos.' : notifications.unread === null ? 'Avisos por consultar' : notifications.unread === 1 ? '1 aviso sin leer' : `${notifications.unread} avisos sin leer`}</Text>
         <Button title="Mis avisos" secondary onPress={() => router.push('/mis-avisos')} />
@@ -60,7 +62,7 @@ export default function PanelScreen() {
       {data && data.kind !== 'ALUMNO' && <><Text style={typography.title}>Resumen</Text>{data.metrics.map(metric => <Card key={metric.label}><Text style={typography.body}>{metric.label}</Text><Text style={typography.title}>{metric.value ?? 'Sin datos'}</Text></Card>)}</>}
       {session.user.role === 'SUPERVISOR' && <Text style={typography.body}>Completa la evaluación desde el expediente del practicante. El cierre lo autoriza el docente después de revisar los requisitos.</Text>}
       <Button title="Actualizar datos" secondary disabled={loading} onPress={() => setAttempt(value => value + 1)} />
-      <Text style={typography.body}>Por ahora, cerrar o recargar la app termina la sesión.</Text>
+      <Text style={typography.body}>En Android conservamos tu sesión de forma segura y la comprobamos al volver a abrir. Al vencer tendrás que ingresar nuevamente.</Text>
       <Button title="Cerrar sesión" onPress={() => signOut()} />
     </Screen>
   </View>;

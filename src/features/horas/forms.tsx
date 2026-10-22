@@ -5,6 +5,7 @@ import { ApiError } from '@/services/api';
 import { getHoras, corregirHoras, registrarHoras, revisarHoras, validateHoras, type HorasDraft, type PracticaHoras, type RegistroHoras } from '@/services/horas';
 import { todayLima } from '@/services/asistencia';
 import { useAuth } from '@/state/auth';
+import { useDraft } from '@/features/shared/use-draft';
 
 // Identificador de deduplicación; no se usa como credencial ni como secreto.
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
@@ -29,12 +30,15 @@ function useWrite(onBusy: (value: boolean) => void) {
   return { run, busy, error, setError, uncertain, setUncertain, session };
 }
 export function RegisterHoursForm({ practica, registro, onSaved, refresh, onBusy }: { practica: PracticaHoras; registro?: RegistroHoras; onSaved: () => void; refresh: () => void; onBusy: (v: boolean) => void }) {
-  const [value, setValue] = useState<HorasDraft>(() => ({ fecha: registro?.fecha.slice(0, 10) ?? todayLima(), horas: registro ? String(registro.horas) : '', descripcion: registro?.descripcion ?? '', solicitudId: newId() }));
+  const draft = useDraft<HorasDraft>('horas', registro ? `${practica.id}:${registro.id}` : practica.id, `Actividad · ${practica.aulaNombre}`, { practica, ...(registro ? { registro } : {}) }, { fecha: registro?.fecha.slice(0, 10) ?? todayLima(), horas: registro ? String(registro.horas) : '', descripcion: registro?.descripcion ?? '', solicitudId: newId() });
+  const { value, setValue } = draft;
   const [review, setReview] = useState(false);
   const write = useWrite(onBusy);
   const change = (key: keyof HorasDraft, text: string) => setValue(v => ({ ...v, [key]: text }));
+  const finish = async () => { await draft.clear(); onSaved(); };
   function prepare() { try { const payload = validateHoras(value); if (registro && payload.horas === registro.horas && payload.descripcion === registro.descripcion && value.fecha === registro.fecha.slice(0, 10)) throw new Error('Modifica la actividad antes de reenviarla.'); write.setError(''); setReview(true); } catch (e) { write.setError((e as Error).message); } }
-  return <Card><Text style={typography.title}>{registro ? 'Corregir actividad rechazada' : 'Registrar actividad'}</Text>
+  if (!draft.ready) return <Text style={typography.body}>Recuperando borrador de actividad…</Text>;
+  return <Card><Text style={typography.title}>{registro ? 'Corregir actividad rechazada' : 'Registrar actividad'}</Text><Text accessibilityLiveRegion="polite" style={typography.body}>{draft.notice || 'Tu actividad se conserva como borrador en este dispositivo al editarla.'}</Text>
     {!!write.error && <Text accessibilityRole="alert" style={typography.error}>{write.error}</Text>}
     {write.uncertain ? <><Text style={typography.body}>No se confirmó el resultado. Consulta la bitácora antes de registrar otra actividad.</Text><Button title={write.busy ? 'Consultando bitácora…' : 'Consultar bitácora actual'} disabled={write.busy} onPress={() => void write.run(async signal => {
       const rows = await getHoras(write.session!, practica.id, signal);
@@ -42,7 +46,7 @@ export function RegisterHoursForm({ practica, registro, onSaved, refresh, onBusy
       if (registro) {
         const found = rows.find(r => r.id === registro.id);
         const payload = validateHoras(value);
-        if (found?.revision === (registro.revision ?? -1) + 1 && found.estadoValidacion === 'PENDIENTE' && found.horas === payload.horas && found.descripcion === payload.descripcion && found.fecha.slice(0, 10) === value.fecha) { onSaved(); return; }
+        if (found?.revision === (registro.revision ?? -1) + 1 && found.estadoValidacion === 'PENDIENTE' && found.horas === payload.horas && found.descripcion === payload.descripcion && found.fecha.slice(0, 10) === value.fecha) { await finish(); return; }
         write.setUncertain(false);
         if (found && found.revision === registro.revision && found.estadoValidacion === 'RECHAZADO') { setReview(true); write.setError('La corrección aún no figura. Puedes confirmar el mismo reenvío.'); }
         else { refresh(); write.setError('La actividad cambió. Consulta los datos actualizados.'); }
@@ -52,12 +56,13 @@ export function RegisterHoursForm({ practica, registro, onSaved, refresh, onBusy
       if (found) {
         const payload = validateHoras(value);
         if (found.horas !== payload.horas || found.descripcion !== payload.descripcion || found.fecha.slice(0, 10) !== value.fecha) throw new ApiError(409, 'La solicitud guardada tiene otros datos.');
-        onSaved();
+        await finish();
       } else { write.setUncertain(false); setReview(true); write.setError('La actividad aún no figura. Puedes confirmar la misma solicitud sin duplicarla.'); }
     }, true)} /></> : review ? <>
       <Text style={typography.body}>{value.fecha} · {value.horas} h</Text><Text style={typography.body}>{value.descripcion.trim()}</Text>
       <Text style={typography.body}>Se enviará al supervisor y quedará pendiente de validación.</Text>
-      <Button title={write.busy ? 'Guardando actividad…' : registro ? 'Confirmar corrección y reenviar' : 'Confirmar actividad'} disabled={write.busy} onPress={() => void write.run(async signal => { if (registro) await corregirHoras(write.session!, practica, registro, value, signal); else await registrarHoras(write.session!, practica, value, signal); if (!signal.aborted) onSaved(); })} />
+      <Button title="Guardar envío pendiente en este dispositivo" secondary disabled={write.busy} onPress={() => void draft.pending().then(() => write.setError('Envío pendiente guardado. Puedes enviarlo desde Borradores cuando tengas conexión.')).catch(() => write.setError('No se pudo guardar el envío pendiente.'))} />
+      <Button title={write.busy ? 'Guardando actividad…' : registro ? 'Confirmar corrección y reenviar' : 'Confirmar actividad'} disabled={write.busy} onPress={() => void write.run(async signal => { await draft.pending(); if (registro) await corregirHoras(write.session!, practica, registro, value, signal); else await registrarHoras(write.session!, practica, value, signal); if (!signal.aborted) await finish(); })} />
       <Button title="Corregir actividad" secondary disabled={write.busy} onPress={() => setReview(false)} />
     </> : <>
       <Field label="Fecha de actividad (AAAA-MM-DD)" value={value.fecha} onChangeText={text => change('fecha', text)} maxLength={10} />

@@ -25,6 +25,7 @@ export default function AdminScreen() {
     <Header title="Administración académica" subtitle="Usuarios, aulas y matrículas" back={() => router.canGoBack() ? router.back() : router.replace('/panel')} />
     <Screen>
       <Text style={typography.body}>Organiza responsables, periodos y acceso a las aulas. Cada cambio efectivo queda en la auditoría.</Text>
+      <Button title="Asignar prácticas y vincular supervisores" secondary onPress={() => router.push('/asignaciones')} />
       <QueryFeedback {...query} notFound="Este servidor todavía no ofrece la administración actualizada." />
       {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
       {data && <>

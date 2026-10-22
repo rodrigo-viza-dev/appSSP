@@ -11,6 +11,8 @@ import type { Session } from '@/services/api';
 import { getEntregaDocente } from '@/services/docencia';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
+import { Attachment } from '@/components/attachment';
+import { DeliveryHistory } from '@/features/tareas/delivery-history';
 
 export default function RevisarEntregaScreen() {
   const params = useLocalSearchParams<{ aulaId?: string; entregaId?: string }>();
@@ -32,11 +34,12 @@ export default function RevisarEntregaScreen() {
           <Text style={typography.body}>{entrega.alumnoNombre} · {academicDate(entrega.createdAt)}</Text>
           <Label>CONTENIDO DE LA ENTREGA</Label><Text style={typography.body}>{entrega.descripcion || 'Sin descripción'}</Text>
           {!!entrega.comentario && <Text style={typography.body}>Comentario: {entrega.comentario}</Text>}
-          {!!entrega.archivoId && <Text style={typography.body}>Incluye un archivo adjunto. Revisa el documento en la plataforma web académica antes de calificar.</Text>}
+          {!!entrega.archivoId && <Attachment aulaId={aulaId} id={entrega.archivoId} />}
           <Text style={typography.body}>Nota actual: {entrega.nota ?? 'Sin calificar'}</Text>
           {!!entrega.retroalimentacion && <Text style={typography.body}>Observaciones actuales: {entrega.retroalimentacion}</Text>}
         </Card>
-        <GradeForm key={`${entrega.id}:${entrega.nota}:${entrega.retroalimentacion}`} entrega={entrega} onReview={() => setNotice('')} onSaved={value => { query.setData(value); setNotice('Calificación guardada y confirmada por el servidor.'); }} refresh={() => { setNotice(''); query.retry(); }} />
+        <DeliveryHistory aulaId={aulaId} taskId={entrega.tareaId} alumnoId={entrega.alumnoId} revision={entrega.revision} />
+        <GradeForm key={`${entrega.id}:${entrega.revision}:${entrega.nota}:${entrega.retroalimentacion}`} entrega={entrega} onReview={() => setNotice('')} onSaved={value => { query.setData(value); setNotice('Calificación guardada y confirmada por el servidor.'); }} refresh={() => { setNotice(''); query.retry(); }} />
       </>}
     </Screen>
   </View>;
