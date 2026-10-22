@@ -36,3 +36,9 @@ La referencia suma 148 horas: 48 pendientes, 60 validadas y 40 validadas. La imp
 ## Validación en Windows
 
 Después de migrar a Windows se ejecutaron npm ci, typecheck y export:web correctamente con Node/npm de Windows. Se corrigió el tipo de color de los iconos de navegación. Para el incremento 1 también se comprobó la navegación web automatizada; ver [INCREMENTO-01.md](INCREMENTO-01.md). Queda pendiente comprobar representación visual, teclado y áreas seguras en dispositivos con Expo Go.
+
+## Exploración del rediseño móvil
+
+El usuario ya revisó la app con Expo Go y quiere explorar una propuesta visual en Replit antes de incorporarla al proyecto. El [brief para Replit](BRIEF-DISENO-REPLIT.md) reúne identidad, navegación propuesta, cuatro roles, reglas funcionales y requisitos de Android. Se empieza por ingreso, inicio y bitácora con datos ficticios. La composición y tipografía nuevas se decidirán tras esa revisión; el granate institucional se conserva.
+
+La comprobación del APK y Google nativo sigue pendiente. Conviene hacer una primera prueba cuando se integre el recorrido principal elegido y repetir la revisión del APK candidato antes del piloto; no asumir que la representación en Expo Go verifica el acceso nativo.
