@@ -14,7 +14,7 @@ async function main() {
   const password = parseEnv(fs.readFileSync(path.resolve('../appSSP-backend/.env'), 'utf8')).TEST_SEED_PASSWORD;
   assert.ok(password);
   const caps = await (await fetch(`${api}/api/v1/auth/capacidades`)).json();
-  assert.equal(caps.restauracion, true); assert.equal(caps.google, false); assert.equal(caps.recuperacion, false);
+  assert.equal(caps.restauracion, true); assert.equal(typeof caps.google, 'boolean'); assert.equal(caps.recuperacion, false);
   const http = [];
   for (const role of ['admin', 'profesor', 'alumno', 'supervisor']) {
     const response = await fetch(`${api}/api/v1/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: `${role}.prueba@unsa.edu.pe`, password }) });
@@ -74,7 +74,7 @@ async function main() {
     await page.getByText('Todavía no hay borradores.', { exact: false }).waitFor();
     assert.equal(await page.getByText(description, { exact: true }).count(), 0);
     assert.deepEqual(errors, []); assert.deepEqual(blocked, []); assert.deepEqual(mutations, []);
-    const report = { verified: true, api, web, http, sessionRestored: true, draftRestoredWithoutApi: true, draftsIsolatedByAccount: true, academicWrites: 0, browserErrors: errors, externalApis: blocked, googleConfigured: false, smtpConfigured: false };
+    const report = { verified: true, api, web, http, sessionRestored: true, draftRestoredWithoutApi: true, draftsIsolatedByAccount: true, academicWrites: 0, browserErrors: errors, unexpectedApiOrigins: blocked, googleConfigured: caps.google, smtpConfigured: false };
     fs.writeFileSync(`${artifacts}/base-funcional-integration.json`, JSON.stringify(report, null, 2)); console.log(JSON.stringify(report));
   } finally { await browser.close(); }
 }

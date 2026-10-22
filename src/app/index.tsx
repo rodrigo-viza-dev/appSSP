@@ -39,7 +39,7 @@ export default function LoginScreen() {
       <View style={{ gap: 8 }}><Text style={typography.title}>Bienvenido a tus prácticas</Text><Text style={typography.body}>Tu experiencia profesional, paso a paso.</Text></View>
       <View style={s.environment}>
         <Text style={s.environmentTitle}>{IS_LOCAL_API ? 'Entorno de pruebas locales' : 'Acceso a cuenta SSP'}</Text>
-        <Text style={typography.body}>{IS_LOCAL_API ? 'Usa una cuenta ficticia de pruebas. La contraseña institucional no permite ingresar aquí.' : 'Usa una cuenta registrada en este servidor. Las cuentas de pruebas locales pertenecen a otro entorno.'}</Text>
+        <Text style={typography.body}>{IS_LOCAL_API ? 'En el formulario SSP usa una cuenta ficticia de pruebas. Para el acceso institucional utiliza el botón de Google cuando esté disponible.' : 'Usa una cuenta registrada en este servidor. Las cuentas de pruebas locales pertenecen a otro entorno.'}</Text>
         <Text selectable style={s.environmentUrl}>{API_URL}</Text>
       </View>
       {recovery ? <Recovery enabled={access.recuperacion} onCancel={() => setRecovery(false)} /> : <>

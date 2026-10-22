@@ -15,6 +15,7 @@
     "test:api": "node --test tests/api.test.cjs tests/aulas.test.cjs tests/centro.test.cjs tests/notificaciones.test.cjs",
     "test:login:real": "node tests/browser-login-real.cjs",
     "test:base:real": "node tests/browser-base-funcional.cjs",
+    "test:google:real": "node tests/browser-google-ready.cjs",
     "test:navigation": "node tests/browser-navigation.cjs",
     "test:aulas": "node tests/browser-aulas.cjs",
     "test:centro": "node tests/browser-centro.cjs",
