@@ -1,5 +1,4 @@
 import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
-import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -11,8 +10,8 @@ import { academicDate } from '@/utils/date';
 function MisAvisosScreenContent() {
   const router = useAppRouter();
   const notifications = useNotifications();
-  const [filter, setFilter] = useState<'todos' | 'pendientes' | 'leidos'>('todos');
-  const items = notifications.items?.filter(item => filter === 'todos' || (filter === 'leidos' ? item.leida : !item.leida));
+  const { filter, setFilter } = notifications;
+  const items = notifications.items;
   const back = () => router.canGoBack() ? router.back() : router.replace('/panel');
   return <View style={s.root}>
     <Header title="Mis avisos" subtitle="Tu actividad en el SSP" back={back} />
@@ -21,7 +20,7 @@ function MisAvisosScreenContent() {
       {notifications.items && <>
         <Text accessibilityLiveRegion="polite" style={typography.title}>{notifications.unread === 1 ? '1 aviso sin leer' : `${notifications.unread} avisos sin leer`}</Text>
         <View style={s.filters}>
-          {(['todos', 'pendientes', 'leidos'] as const).map(value => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: filter === value }} onPress={() => setFilter(value)} style={[s.filter, filter === value && s.selected]}>
+          {(['todos', 'pendientes', 'leidos'] as const).map(value => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: filter === value }} disabled={notifications.busy||notifications.loadingMore} onPress={() => setFilter(value)} style={[s.filter, filter === value && s.selected]}>
             <Text style={[s.filterText, filter === value && s.selectedText]}>{value === 'todos' ? 'Todos' : value === 'pendientes' ? 'Sin leer' : 'Leídos'}</Text>
           </Pressable>)}
         </View>
@@ -37,7 +36,9 @@ function MisAvisosScreenContent() {
         </Card>)}
       </>}
       <Text style={typography.body}>Actualiza la bandeja para consultar nuevos avisos.</Text>
-      <Button title="Actualizar avisos" secondary disabled={notifications.loading || notifications.busy} onPress={notifications.refresh} />
+      {!!notifications.moreError&&<Text accessibilityRole="alert" style={typography.error}>{notifications.moreError}</Text>}
+      {notifications.hasMore&&<Button title={notifications.loadingMore?'Cargando…':notifications.moreError?'Reintentar carga':'Ver avisos anteriores'} secondary disabled={notifications.loadingMore||notifications.busy} onPress={notifications.loadMore}/>}
+      <Button title="Actualizar avisos" secondary disabled={notifications.loading || notifications.busy || notifications.loadingMore} onPress={notifications.refresh} />
     </Screen>
   </View>;
 }

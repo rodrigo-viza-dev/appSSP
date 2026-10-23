@@ -1,1 +1,1 @@
-export { default } from '@/app/mis-avisos';
+export { StudentNotices as default } from '@/features/alumno/notices';

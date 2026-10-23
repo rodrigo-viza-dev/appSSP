@@ -29,8 +29,9 @@ flowchart TD
     A1 --> A5["Comunidad: anuncios y foros"]
 
     N --> N1["Lista de avisos"]
-    N1 -.->|"Abrir recurso exacto"| A3
-    N1 -.->|"Abrir revisión"| B2
+    N1 --> N2["Detalle de aviso"]
+    N2 -->|"Abrir tarea"| A3
+    N2 -->|"Abrir actividad"| B2
 
     M --> M1["Mi práctica"]
     M1 --> M11["Centro y supervisor"]
@@ -67,7 +68,7 @@ La aplicación contempla los cuatro roles, con interfaces según sus responsabil
 
 La integración Expo debe pedir bloques acotados al servidor, ordenados con un desempate estable por identificador. Aplicar filtros en el servidor, conservar la posición y las filas ya cargadas al abrir un detalle, y renderizar solo las filas necesarias. La siguiente carga debe añadir registros sin duplicarlos ni desplazar al usuario al comienzo. Un fallo al traer más datos conserva lo visible y ofrece reintento.
 
-Los totales de horas y los contadores se calculan sobre el conjunto autorizado completo, no sobre la página visible. Cargar cada módulo al abrirlo y descargar los archivos solo cuando se soliciten. Bitácora ya aplica paginación real de 20 filas, filtros en servidor y `FlatList`; otras listas conservan sus API actuales. Quitar un campo de búsqueda por sí solo no reduce los datos descargados.
+Los totales de horas y los contadores se calculan sobre el conjunto autorizado completo, no sobre la página visible. Cargar cada módulo al abrirlo y descargar los archivos solo cuando se soliciten. Bitácora y Avisos ya aplican paginación real de 20 filas, filtros en servidor y `FlatList`; otras listas conservan sus API actuales. Quitar un campo de búsqueda por sí solo no reduce los datos descargados.
 
 El prototipo HTML muestra ocho actividades iniciales y permite consultar las anteriores en bloques de ocho. Usa datos ficticios que ya están en memoria: demuestra el orden y la presentación progresiva, no paginación de red ni mejoras de rendimiento medidas.
 
@@ -78,7 +79,7 @@ El prototipo HTML muestra ocho actividades iniciales y permite consultar las ant
 3. Un formulario permite guardar borrador o confirmar antes de descartar cambios. El teclado no impide editar ni alcanzar la acción final.
 4. Un envío distingue contenido local, envío en curso, recibido y error. Los borradores confirmados se envían mediante la acción explícita existente.
 5. Una práctica sin asignación, un aula vacía, una sesión vencida o un permiso retirado muestran un estado comprensible y una salida útil.
-6. Los avisos deberían abrir el recurso indicado; un recurso que ya no está disponible debe explicar el resultado. Este destino exacto sigue pendiente: el modelo actual de avisos no aporta todos los identificadores necesarios. Se conserva la lectura y los filtros existentes. Las acciones importantes incluyen la revisión o confirmación correspondiente.
+6. Los avisos nuevos de tarea o revisión de horas abren su recurso exacto dentro de la pestaña Avisos; Atrás regresa al aviso y a su bandeja. El [incremento 22](INCREMENTO-22.md) añade esos identificadores y conserva los avisos antiguos como informativos, sin reconstruir destinos. Consultar no marca leído automáticamente. Las acciones importantes incluyen la revisión o confirmación correspondiente.
 
 ## Primer recorrido visual
 

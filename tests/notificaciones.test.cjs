@@ -8,7 +8,7 @@ function load(file, fetch, dependencies = {}) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(code, {
-    exports, process: { env: {} }, fetch, AbortController, setTimeout, clearTimeout,
+    exports, process: { env: {} }, fetch, AbortController, URLSearchParams, setTimeout, clearTimeout,
     require: name => { if (!(name in dependencies)) throw new Error(`Unexpected import: ${name}`); return dependencies[name]; },
   });
   return exports;
@@ -86,4 +86,35 @@ test('a pending write can be cancelled when its account leaves', async () => {
   const pending = api.markAllNotificacionesRead(session, controller.signal);
   controller.abort();
   await assert.rejects(pending, error => error.status === 0);
+});
+
+test('pages use server filters and cursors while keeping the global unread count', async () => {
+  const api = service(async (url) => {
+    const request = new URL(url);
+    assert.equal(request.searchParams.get('estado'), 'pendientes');
+    assert.equal(request.searchParams.get('limite'), '20');
+    assert.equal(request.searchParams.get('cursor'), 'date|id');
+    return response({ items: [item], total: 31, sinLeer: 31, siguiente: null });
+  });
+  const page = await api.getNoticePage(session, signal(), 'pendientes', 'date|id');
+  assert.equal(page.sinLeer, 31);
+  assert.equal(page.items.length, 1);
+});
+
+test('unsafe destinations and incompatible pages are rejected', async () => {
+  for (const destino of [{ tipo: 'URL', url: 'https://example.org' }, { tipo: 'TAREA', aulaId: 'a' }, { tipo: 'ACTIVIDAD', practicaId: 'p', registroId: 'r', url: 'x' }]) {
+    await assert.rejects(service(async () => response([{ ...item, destino }])).getNotificaciones(session, signal()), error => error.status === 502);
+  }
+  const base = { items: [item], total: 1, sinLeer: 1, siguiente: null };
+  for (const page of [{ ...base, total: 0 }, { ...base, sinLeer: -1 }, { ...base, items: [item, item], total: 2 }, { ...base, items: [{ ...item, leida: true }] }]) {
+    await assert.rejects(service(async () => response(page)).getNoticePage(session, signal(), 'pendientes'), error => error.status === 502);
+  }
+});
+
+test('a detail must belong to this account and match the requested ID', async () => {
+  const valid = { ...item, destino: { tipo: 'TAREA', aulaId: 'a', tareaId: 't' } };
+  assert.equal((await service(async () => response(valid)).getNotice(session, item.id, signal())).destino.tareaId, 't');
+  for (const row of [{ ...valid, id: 'different' }, { ...valid, userId: 'another' }]) {
+    await assert.rejects(service(async () => response(row)).getNotice(session, item.id, signal()), error => error.status === 502);
+  }
 });
