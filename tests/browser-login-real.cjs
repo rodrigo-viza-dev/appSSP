@@ -5,11 +5,12 @@ const { parseEnv } = require('node:util');
 const { chromium } = require(process.env.PLAYWRIGHT_CORE_PATH || 'playwright-core');
 
 // Solo cuentas ficticias y API local. No crea cuentas ni modifica datos académicos.
-const api = 'http://localhost:8000';
+const api = process.env.SSP_API_URL || 'http://localhost:8000';
 const web = process.env.SSP_WEB_URL || 'http://localhost:5173';
 const artifacts = '.expo/dev';
 
 async function main() {
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(api).hostname), 'La prueba requiere API local.');
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(web).hostname), 'La prueba requiere Expo local.');
   const ready = await fetch(`${api}/dev/ready`, { signal: AbortSignal.timeout(20000) });
   assert.equal(ready.status, 200);
@@ -50,7 +51,8 @@ async function main() {
     await page.screenshot({ path: `${artifacts}/login-entorno-mobile.png` });
     const success = await attempt(password, 200);
     assert.equal((await success.json()).user.role, 'ALUMNO');
-    await page.getByRole('button', { name: 'Mensajes académicos', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'PrácticasCC', exact: true }).waitFor();
+    assert.equal(await page.getByRole('tab').count(), 5);
     await page.screenshot({ path: `${artifacts}/login-real-inicio-mobile.png` });
     assert.deepEqual(blocked, []);
     assert.deepEqual(errors, []);

@@ -1,5 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
+import { useOptionalStudent } from '@/features/alumno/state';
 import { useCallback, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { Badge, Button, Card, Header, Label, typography } from '@/components/ui';
@@ -15,13 +17,14 @@ import { Attachment } from '@/components/attachment';
 import { DeliveryHistory } from '@/features/tareas/delivery-history';
 import { useAuth } from '@/state/auth';
 
-export default function TareaScreen() {
+function TareaScreenContent() {
   const params = useLocalSearchParams<{ aulaId?: string | string[]; tareaId?: string | string[] }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
   const tareaId = typeof params.tareaId === 'string' ? params.tareaId : '';
   const validLink = !!aulaId.trim() && !!tareaId.trim();
-  const router = useRouter();
+  const router = useAppRouter();
   const { session } = useAuth();
+  const student = useOptionalStudent();
   const load = useCallback((session: Session, signal: AbortSignal) => getTarea(session, aulaId, tareaId, signal), [aulaId, tareaId]);
   const query = useStudentQuery(`tarea:${JSON.stringify([aulaId, tareaId])}`, load, validLink);
   const tarea = query.data;
@@ -54,10 +57,12 @@ export default function TareaScreen() {
             <Text style={typography.body}>{tarea.entrega.retroalimentacion || 'Aún no hay observaciones del docente.'}</Text>
           </Card>
         </> : <Card><Text style={typography.body}>Todavía no tienes una entrega registrada para esta tarea.</Text></Card>}
-        {(!tarea.entrega || tarea.entrega.estado !== 'CALIFICADA') && (showDelivery ? <DeliveryPanel key={`${tarea.id}:${tarea.entrega?.revision ?? 'nueva'}`} task={tarea} onBusy={setBusy} onSaved={() => { setShowDelivery(false); setNotice('Entrega guardada y confirmada por el servidor.'); query.retry(); }} /> : <Button title={tarea.entrega ? 'Reemplazar entrega sin calificar' : 'Entregar respuesta escrita'} onPress={() => setShowDelivery(true)} />)}
+        {(!tarea.entrega || tarea.entrega.estado !== 'CALIFICADA') && (showDelivery ? <DeliveryPanel key={`${tarea.id}:${tarea.entrega?.revision ?? 'nueva'}`} task={tarea} onBusy={setBusy} onSaved={() => { setShowDelivery(false); setNotice('Entrega guardada y confirmada por el servidor.'); query.retry(); student?.refresh(); }} /> : <Button title={tarea.entrega ? 'Reemplazar entrega sin calificar' : 'Entregar respuesta escrita'} onPress={() => setShowDelivery(true)} />)}
         {!!tarea.entrega && !!session && <DeliveryHistory aulaId={aulaId} taskId={tareaId} alumnoId={session.user.id} revision={tarea.entrega.revision} />}
         <Button title="Actualizar tarea" secondary disabled={busy} onPress={query.retry} />
       </>}
     </Screen>
   </View>;
 }
+
+export default function TareaScreen(){return <StudentLegacyRoute route="/tarea"><TareaScreenContent /></StudentLegacyRoute>;}

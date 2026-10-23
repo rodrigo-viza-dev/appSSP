@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -8,8 +9,8 @@ import { useSessionQuery } from '@/features/shared/use-session-query';
 import { getPracticasExpedientes } from '@/services/expedientes';
 import { colors } from '@/theme';
 
-export default function ExpedientesScreen() {
-  const router = useRouter(), params = useLocalSearchParams<{ aulaId?: string; alumnoId?: string }>();
+function ExpedientesScreenContent() {
+  const router = useAppRouter(), params = useLocalSearchParams<{ aulaId?: string; alumnoId?: string }>();
   const query = useSessionQuery('practicas-expedientes', useCallback(getPracticasExpedientes, []), true);
   const rows = query.data?.filter(p => (!params.aulaId || p.aulaId === params.aulaId) && (!params.alumnoId || p.practicanteId === params.alumnoId));
   return <View style={{ flex: 1, backgroundColor: colors.white }}>
@@ -28,3 +29,5 @@ export default function ExpedientesScreen() {
     </Screen>
   </View>;
 }
+
+export default function ExpedientesScreen(){return <StudentLegacyRoute route="/expedientes"><ExpedientesScreenContent /></StudentLegacyRoute>;}

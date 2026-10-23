@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -13,8 +14,8 @@ import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 
-export default function ConversationScreen() {
-  const router = useRouter(), { session, signOut } = useAuth(), params = useLocalSearchParams<{ aulaId?: string; contactoId?: string }>();
+function ConversationScreenContent() {
+  const router = useAppRouter(), { session, signOut } = useAuth(), params = useLocalSearchParams<{ aulaId?: string; contactoId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '', peerId = typeof params.contactoId === 'string' ? params.contactoId : '';
   const context = useSessionQuery(`chat-contexto:${aulaId}:${peerId}`, useCallback((s: Session, signal: AbortSignal) => getChatContext(s, aulaId, peerId, signal), [aulaId, peerId]), !!aulaId && !!peerId && !!session);
   const messages = useSessionQuery(`chat:${aulaId}:${peerId}`, useCallback((s: Session, signal: AbortSignal) => getMensajes(s, aulaId, peerId, signal), [aulaId, peerId]), !!context.data);
@@ -53,3 +54,5 @@ export default function ConversationScreen() {
     </Screen>
   </View>;
 }
+
+export default function ConversationScreen(){return <StudentLegacyRoute route="/conversacion"><ConversationScreenContent /></StudentLegacyRoute>;}

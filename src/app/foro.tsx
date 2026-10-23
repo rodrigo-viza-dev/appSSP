@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -12,8 +13,8 @@ import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 
-export default function ForumScreen() {
-  const router = useRouter(), params = useLocalSearchParams<{ aulaId?: string; hiloId?: string }>();
+function ForumScreenContent() {
+  const router = useAppRouter(), params = useLocalSearchParams<{ aulaId?: string; hiloId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '', hiloId = typeof params.hiloId === 'string' ? params.hiloId : '';
   const { session } = useAuth();
   const [busy, setBusy] = useState(false), [composing, setComposing] = useState(false), [notice, setNotice] = useState('');
@@ -47,3 +48,5 @@ export default function ForumScreen() {
     </Screen>
   </View>;
 }
+
+export default function ForumScreen(){return <StudentLegacyRoute route="/foro"><ForumScreenContent /></StudentLegacyRoute>;}

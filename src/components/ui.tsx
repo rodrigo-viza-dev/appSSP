@@ -1,9 +1,12 @@
+import { useStudentAppearance, studentColors as sc } from '@/theme/student';
 import type { PropsWithChildren } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, type ColorValue, type TextInputProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, serif } from '@/theme';
 
 export function Header({ title, subtitle, back }: { title: string; subtitle: string; back?: () => void }) {
+  const student=useStudentAppearance();
+  if(student)return <SafeAreaView edges={['top']} style={{backgroundColor:sc.background}}><View style={[s.headerInner,{padding:20,paddingBottom:12,maxWidth:560,width:'100%',alignSelf:'center'}]}>{back&&<Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Volver" style={{minWidth:48,minHeight:48,justifyContent:'center',alignItems:'center',marginLeft:-12}}><Text style={{fontSize:32,color:sc.primary}}>‹</Text></Pressable>}<View style={{flex:1}}><Text accessibilityRole="header" style={{fontSize:23,lineHeight:30,fontWeight:'700',color:sc.text}}>{title}</Text>{!!subtitle&&<Text style={{fontSize:13,lineHeight:21,color:sc.muted,marginTop:4}}>{subtitle}</Text>}</View></View></SafeAreaView>;
   return <SafeAreaView edges={['top']} style={s.header}><View style={s.headerInner}>
     {back && <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Volver" hitSlop={12}><Text style={s.back}>‹</Text></Pressable>}
     <View style={{ flex: 1 }}><Text accessibilityRole="header" style={s.headerTitle}>{title}</Text><Text style={s.subtitle}>{subtitle}</Text></View>
@@ -11,15 +14,17 @@ export function Header({ title, subtitle, back }: { title: string; subtitle: str
   </View></SafeAreaView>;
 }
 export function Button({ title, onPress, secondary = false, disabled = false }: { title: string; onPress: () => void; secondary?: boolean; disabled?: boolean }) {
-  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, secondary && s.secondary, { opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }]}><Text style={[s.buttonText, secondary && { color: colors.primary }]}>{title}</Text></Pressable>;
+  const student=useStudentAppearance();
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, student && {borderRadius:15,minHeight:54}, secondary && s.secondary, student && secondary && {backgroundColor:sc.paper,borderColor:sc.border}, { opacity: disabled ? 0.5 : pressed ? 0.8 : 1 }]}><Text style={[s.buttonText, secondary && { color: colors.primary }]}>{title}</Text></Pressable>;
 }
-export function Card({ children }: PropsWithChildren) { return <View style={s.card}>{children}</View>; }
+export function Card({ children }: PropsWithChildren) { const student=useStudentAppearance(); return <View style={[s.card,student&&{backgroundColor:sc.paper,borderWidth:1,borderColor:sc.border,borderRadius:20}]}>{children}</View>; }
 export function Label({ children }: PropsWithChildren) { return <Text style={s.label}>{children}</Text>; }
 export function Badge({ title, tone = 'success' }: { title: string; tone?: 'success' | 'warning' | 'neutral' }) {
   return <View style={[s.badge, { backgroundColor: tone === 'success' ? colors.successSoft : tone === 'warning' ? colors.warningSoft : colors.primarySoft }]}><Text style={[s.badgeText, { color: tone === 'success' ? colors.success : tone === 'warning' ? colors.warning : colors.primary }]}>{title}</Text></View>;
 }
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
-  return <View style={{ gap: 8 }}><Text style={s.fieldLabel}>{label}</Text><TextInput accessibilityLabel={label} placeholderTextColor={colors.muted} {...props} style={[s.input, props.multiline && { minHeight: 110, textAlignVertical: 'top' }, props.style]} /></View>;
+  const student=useStudentAppearance();
+  return <View style={{ gap: 8 }}><Text style={s.fieldLabel}>{label}</Text><TextInput accessibilityLabel={label} placeholderTextColor={colors.muted} {...props} style={[s.input, student && {backgroundColor:sc.paper,borderColor:sc.border,fontSize:16}, props.multiline && { minHeight: 110, textAlignVertical: 'top' }, props.style]} /></View>;
 }
 export function Hours({ total, validated }: { total: number; validated: number }) {
   return <View style={s.hours}><Label>HORAS ACUMULADAS</Label><Text style={s.number}>{total}<Text style={s.denominator}> / 360 h</Text></Text>
@@ -28,9 +33,11 @@ export function Hours({ total, validated }: { total: number; validated: number }
   </View>;
 }
 // Iconos de línea sin fuentes ni dependencias adicionales.
-export function TabIcon({ name, color }: { name: 'home' | 'clock' | 'book' | 'bell'; color: ColorValue }) {
+export function TabIcon({ name, color }: { name: 'home' | 'clock' | 'book' | 'bell' | 'aulas' | 'more'; color: ColorValue }) {
   const line = { borderColor: color, borderWidth: 1.6 };
   return <View style={{ width: 25, height: 25, alignItems: 'center', justifyContent: 'center' }}>
+    {name === 'more' && <View style={{flexDirection:'row',gap:4}}>{[1,2,3].map(i=><View key={i} style={{width:4,height:4,borderRadius:2,backgroundColor:color}} />)}</View>}
+    {name === 'aulas' && <View style={{flexDirection:'row'}}>{[1,2].map(i=><View key={i} style={[line,{width:9,height:19,borderRadius:2}]} />)}</View>}
     {name === 'home' && <><View style={[line, { width: 13, height: 13, transform: [{ rotate: '45deg' }], position: 'absolute', top: 2, borderRightWidth: 0, borderBottomWidth: 0 }]} /><View style={[line, { width: 15, height: 14, top: 4, borderTopWidth: 0, backgroundColor: colors.white }]} /></>}
     {name === 'clock' && <View style={[line, { width: 21, height: 21, borderRadius: 11 }]}><View style={{ width: 1.6, height: 7, backgroundColor: color, position: 'absolute', top: 3, left: 8 }} /><View style={{ width: 6, height: 1.6, backgroundColor: color, position: 'absolute', top: 10, left: 8, transform: [{ rotate: '25deg' }] }} /></View>}
     {name === 'book' && <View style={[line, { width: 17, height: 21, borderRadius: 2, padding: 3, gap: 3 }]}>{[1, 2, 3].map(x => <View key={x} style={{ height: 1.4, backgroundColor: color }} />)}</View>}

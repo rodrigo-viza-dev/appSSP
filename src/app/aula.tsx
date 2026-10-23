@@ -1,5 +1,6 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { Badge, Button, Card, Header, Label, typography } from '@/components/ui';
@@ -11,17 +12,17 @@ import { QueryFeedback } from '@/components/query-feedback';
 import { useStudentQuery } from '@/features/shared/use-student-query';
 import { colors, serif } from '@/theme';
 
-export default function AulaScreen() {
+function AulaScreenContent() {
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const id = typeof params.id === 'string' ? params.id : '';
-  const router = useRouter();
+  const router = useAppRouter();
   const [section, setSection] = useState<'tareas' | 'notas'>('tareas');
   const loadAula = useCallback((session: Session, signal: AbortSignal) => getAula(session, id, signal), [id]);
   const loadTareas = useCallback((session: Session, signal: AbortSignal) => getTareas(session, id, signal), [id]);
   const loadNotas = useCallback((session: Session, signal: AbortSignal) => getCalificaciones(session, id, signal), [id]);
   const aula = useStudentQuery(`aula:${id}`, loadAula, !!id.trim());
   const tareas = useStudentQuery(`tareas:${id}`, loadTareas, !!aula.data);
-  const notas = useStudentQuery(`notas:${id}`, loadNotas, !!aula.data);
+  const notas = useStudentQuery(`notas:${id}`, loadNotas, !!aula.data && section === 'notas');
   const back = () => router.canGoBack() ? router.back() : router.replace('/panel');
 
   return <View style={s.root}>
@@ -100,3 +101,5 @@ const s = StyleSheet.create({
   average: { fontSize: 29, fontFamily: serif, color: colors.text },
   caption: { fontSize: 12, lineHeight: 18, color: colors.muted },
 });
+
+export default function AulaScreen(){return <StudentLegacyRoute route="/aula"><AulaScreenContent /></StudentLegacyRoute>;}

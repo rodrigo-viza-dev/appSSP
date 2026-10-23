@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -12,8 +13,8 @@ import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 
-export default function CommunityScreen() {
-  const router = useRouter(), params = useLocalSearchParams<{ aulaId?: string; seccion?: string }>();
+function CommunityScreenContent() {
+  const router = useAppRouter(), params = useLocalSearchParams<{ aulaId?: string; seccion?: string }>();
   const { session } = useAuth();
   const [selected, setSelected] = useState(typeof params.aulaId === 'string' ? params.aulaId : '');
   const [section, setSection] = useState<'anuncios' | 'foros'>(params.seccion === 'foros' ? 'foros' : 'anuncios');
@@ -41,7 +42,7 @@ export default function CommunityScreen() {
         <Text style={typography.body}>{section === 'anuncios' ? 'Comunicados publicados por docencia. Los anuncios fijados aparecen primero.' : 'Comparte dudas, propuestas y aprendizajes con los miembros de tu aula. Abre un tema y añade respuestas dentro de la conversación.'}</Text>
         {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
         <QueryFeedback {...query} notFound="El contenido no está disponible para tu cuenta." />
-        <Field label="Buscar en el aula" editable={!busy} value={search} onChangeText={setSearch} placeholder="Tema, contenido o responsable" />
+        {session?.user.role !== 'ALUMNO' && <Field label="Buscar en el aula" editable={!busy} value={search} onChangeText={setSearch} placeholder="Tema, contenido o responsable" />}
         {section === 'anuncios' && <Button title={pinned ? 'Mostrar todos los anuncios' : 'Mostrar solo fijados'} secondary disabled={busy} onPress={() => setPinned(v => !v)} />}
         {aula.estado === 'ACTIVA' && (section === 'foros' || canPublish) && !creating && <Button title={section === 'anuncios' ? 'Publicar anuncio' : 'Abrir tema de foro'} disabled={busy} onPress={() => setCreating(true)} />}
         {creating && <>
@@ -67,3 +68,5 @@ export default function CommunityScreen() {
     </Screen>
   </View>;
 }
+
+export default function CommunityScreen(){return <StudentLegacyRoute route="/comunidad"><CommunityScreenContent /></StudentLegacyRoute>;}

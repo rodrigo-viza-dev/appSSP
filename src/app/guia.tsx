@@ -1,14 +1,14 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { Screen } from '@/components/screen';
 import { guideArticles } from '@/content/guide';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function GuideScreen() {
-  const router = useRouter(), { session } = useAuth();
+function GuideScreenContent() {
+  const router = useAppRouter(), { session } = useAuth();
   const [search, setSearch] = useState(''), [category, setCategory] = useState('Todas'), [expanded, setExpanded] = useState('');
   if (!session) return null;
   const available = guideArticles.filter(a => a.roles.includes(session.user.role));
@@ -18,7 +18,7 @@ export default function GuideScreen() {
     <Header title="Guía de prácticas" subtitle="Pasos y ejemplos para tu rol" back={() => router.canGoBack() ? router.back() : router.replace('/panel')} />
     <Screen>
       <Card><Text style={typography.title}>Del registro al seguimiento</Text><Text style={typography.body}>Consulta cómo usar los módulos de la app y preparar información que pueda revisarse. Los objetivos, plazos y criterios académicos los define tu coordinación o docente.</Text></Card>
-      <Field label="Buscar en la guía" value={search} onChangeText={setSearch} placeholder="Actividad, meta, foro, conexión…" />
+      {session?.user.role !== 'ALUMNO' && <Field label="Buscar en la guía" value={search} onChangeText={setSearch} placeholder="Actividad, meta, foro, conexión…" />}
       <View style={{ gap: 8 }}>{categories.map(c => <Button key={c} title={c} secondary={c !== category} onPress={() => setCategory(c)} />)}</View>
       <Text style={typography.body}>{rows.length} artículos disponibles</Text>
       {rows.map(a => <Card key={a.id}>
@@ -30,3 +30,5 @@ export default function GuideScreen() {
     </Screen>
   </View>;
 }
+
+export default function GuideScreen(){return <StudentLegacyRoute route="/guia"><GuideScreenContent /></StudentLegacyRoute>;}

@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -10,8 +11,8 @@ import type { Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function MessagesScreen() {
-  const router = useRouter(), { session } = useAuth(), params = useLocalSearchParams<{ aulaId?: string }>();
+function MessagesScreenContent() {
+  const router = useAppRouter(), { session } = useAuth(), params = useLocalSearchParams<{ aulaId?: string }>();
   const [selected, setSelected] = useState(typeof params.aulaId === 'string' ? params.aulaId : ''), [search, setSearch] = useState(''), [unreadOnly, setUnreadOnly] = useState(false);
   const aulas = useSessionQuery('mensajes-aulas', useCallback(getAulasMensajes, []), !!session && ['ALUMNO', 'PROFESOR'].includes(session.user.role));
   const aula = selected ? aulas.data?.find(a => a.id === selected) : aulas.data?.[0], id = aula?.id ?? '';
@@ -30,7 +31,7 @@ export default function MessagesScreen() {
       {aula && <>
         <Card><Text style={typography.title}>{aula.nombre}</Text><Text style={typography.body}>{aula.periodo}</Text><Badge title={aula.estado === 'ACTIVA' ? 'Aula activa' : 'Aula concluida · solo consulta'} tone="neutral" /><Text style={typography.title}>{contacts.data?.reduce((n, c) => n + c.noLeidos, 0) ?? 0} mensajes sin leer</Text></Card>
         <QueryFeedback {...contacts} notFound="Los contactos no están disponibles." />
-        <Field label="Buscar contacto académico" value={search} onChangeText={setSearch} placeholder="Nombre del docente o estudiante" />
+        {session?.user.role !== 'ALUMNO' && <Field label="Buscar contacto académico" value={search} onChangeText={setSearch} placeholder="Nombre del docente o estudiante" />}
         <Button title={unreadOnly ? 'Mostrar todos los contactos' : 'Mostrar solo conversaciones sin leer'} secondary onPress={() => setUnreadOnly(v => !v)} />
         {rows?.map(c => <Card key={c.userId}><Text style={typography.title}>{c.nombre}</Text><Badge title={c.noLeidos ? `${c.noLeidos} sin leer` : 'Sin mensajes pendientes de lectura'} tone={c.noLeidos ? 'warning' : 'neutral'} /><Button title={`Conversar con: ${c.nombre}`} secondary onPress={() => router.push({ pathname: '/conversacion', params: { aulaId: id, contactoId: c.userId } })} /></Card>)}
         {contacts.data && rows?.length === 0 && <Text style={typography.body}>{contacts.data.length ? 'No hay contactos para esta consulta.' : 'No hay contactos disponibles en esta aula.'}</Text>}
@@ -39,3 +40,5 @@ export default function MessagesScreen() {
     </Screen>
   </View>;
 }
+
+export default function MessagesScreen(){return <StudentLegacyRoute route="/mensajes"><MessagesScreenContent /></StudentLegacyRoute>;}

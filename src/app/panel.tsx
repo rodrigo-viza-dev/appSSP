@@ -1,6 +1,6 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Screen } from '@/components/screen';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { useAuth } from '@/state/auth';
@@ -8,8 +8,8 @@ import { useNotifications } from '@/state/notificaciones';
 import { ApiError, getDashboard, type Dashboard } from '@/services/api';
 import { colors } from '@/theme';
 const roles = { ALUMNO: 'Practicante', PROFESOR: 'Docente', ADMIN: 'Administración', SUPERVISOR: 'Supervisor de empresa' };
-export default function PanelScreen() {
-  const router = useRouter();
+function PanelScreenContent() {
+  const router = useAppRouter();
   const { session, signOut, offline } = useAuth();
   const notifications = useNotifications();
   const [data, setData] = useState<Dashboard | null>(null);
@@ -67,3 +67,5 @@ export default function PanelScreen() {
     </Screen>
   </View>;
 }
+
+export default function PanelScreen(){return <StudentLegacyRoute route="/panel"><PanelScreenContent /></StudentLegacyRoute>;}

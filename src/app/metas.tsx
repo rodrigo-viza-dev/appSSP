@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -12,8 +13,8 @@ import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 
-export default function GoalsScreen() {
-  const router = useRouter(), { session } = useAuth();
+function GoalsScreenContent() {
+  const router = useAppRouter(), { session } = useAuth();
   const params = useLocalSearchParams<{ practicaId?: string }>();
   const [selected, setSelected] = useState(typeof params.practicaId === 'string' ? params.practicaId : ''), [search, setSearch] = useState(''), [filter, setFilter] = useState<'all' | 'pending' | 'done'>('all');
   const [creating, setCreating] = useState(false), [editing, setEditing] = useState(''), [busy, setBusy] = useState(false), [notice, setNotice] = useState('');
@@ -40,7 +41,7 @@ export default function GoalsScreen() {
         {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
         {query.data && <>
           <Card><Text style={typography.title}>{done} de {query.data.length} metas completadas</Text><Text style={typography.body}>{query.data.length - done} metas con producción pendiente.</Text></Card>
-          <Field label="Buscar metas" editable={!busy && !editing && !creating} value={search} onChangeText={setSearch} placeholder="Tipo o descripción" />
+          {session?.user.role !== 'ALUMNO' && <Field label="Buscar metas" editable={!busy && !editing && !creating} value={search} onChangeText={setSearch} placeholder="Tipo o descripción" />}
           <View style={{ gap: 8 }}>{([['all', 'Todas las metas'], ['pending', 'En progreso'], ['done', 'Completadas']] as const).map(([key, title]) => <Button key={key} title={title} secondary={filter !== key} disabled={busy || !!editing || creating} onPress={() => setFilter(key)} />)}</View>
           {editor && practica.estado !== 'CERRADA' && !creating && !editing && <Button title="Definir nueva meta" onPress={() => setCreating(true)} />}
           {creating && <>
@@ -70,3 +71,5 @@ export default function GoalsScreen() {
     </Screen>
   </View>;
 }
+
+export default function GoalsScreen(){return <StudentLegacyRoute route="/metas"><GoalsScreenContent /></StudentLegacyRoute>;}

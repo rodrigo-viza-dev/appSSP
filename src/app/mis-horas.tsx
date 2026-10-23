@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -13,9 +14,9 @@ import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 
-export default function HoursScreen() {
+function HoursScreenContent() {
   const { session } = useAuth();
-  const router = useRouter();
+  const router = useAppRouter();
   const params = useLocalSearchParams<{ practicaId?: string }>();
   const supervisor = session?.user.role === 'SUPERVISOR';
   const enabled = supervisor || session?.user.role === 'ALUMNO';
@@ -63,3 +64,5 @@ export default function HoursScreen() {
     </Screen>
   </View>;
 }
+
+export default function HoursScreen(){return <StudentLegacyRoute route="/mis-horas"><HoursScreenContent /></StudentLegacyRoute>;}

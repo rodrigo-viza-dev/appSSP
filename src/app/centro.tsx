@@ -1,5 +1,5 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
-import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -11,8 +11,8 @@ import { getCentro, getSupervisor, registerCentro, registerSupervisor, validateC
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function CentroScreen() {
-  const router = useRouter();
+function CentroScreenContent() {
+  const router = useAppRouter();
   const { session } = useAuth();
   const [notice, setNotice] = useState('');
   const [centroDraft, setCentroDraft] = useState<CentroDraft>({ razonSocial: '', ruc: '', direccion: '', sector: '', telefono: '', email: '' });
@@ -79,3 +79,5 @@ export default function CentroScreen() {
     </Screen>
   </View>;
 }
+
+export default function CentroScreen(){return <StudentLegacyRoute route="/centro"><CentroScreenContent /></StudentLegacyRoute>;}

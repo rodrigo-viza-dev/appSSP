@@ -17,6 +17,7 @@
     "test:base:real": "node tests/browser-base-funcional.cjs",
     "test:google:real": "node tests/browser-google-ready.cjs",
     "test:navigation": "node tests/browser-navigation.cjs",
+    "test:alumno": "node tests/browser-alumno.cjs",
     "test:aulas": "node tests/browser-aulas.cjs",
     "test:centro": "node tests/browser-centro.cjs",
     "test:avisos": "node tests/browser-avisos.cjs",

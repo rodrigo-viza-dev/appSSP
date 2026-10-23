@@ -1,5 +1,5 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useState } from 'react';
-import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -8,8 +8,8 @@ import { useNotifications } from '@/state/notificaciones';
 import { colors } from '@/theme';
 import { academicDate } from '@/utils/date';
 
-export default function MisAvisosScreen() {
-  const router = useRouter();
+function MisAvisosScreenContent() {
+  const router = useAppRouter();
   const notifications = useNotifications();
   const [filter, setFilter] = useState<'todos' | 'pendientes' | 'leidos'>('todos');
   const items = notifications.items?.filter(item => filter === 'todos' || (filter === 'leidos' ? item.leida : !item.leida));
@@ -47,3 +47,5 @@ const s = StyleSheet.create({
   selected: { backgroundColor: colors.primary, borderColor: colors.primary }, filterText: { color: colors.primary, fontSize: 14, fontWeight: '600' }, selectedText: { color: colors.white },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, date: { fontSize: 12, lineHeight: 18, color: colors.muted },
 });
+
+export default function MisAvisosScreen(){return <StudentLegacyRoute route="/mis-avisos"><MisAvisosScreenContent /></StudentLegacyRoute>;}

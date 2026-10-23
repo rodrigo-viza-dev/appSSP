@@ -1,6 +1,7 @@
+import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -14,8 +15,8 @@ import { useAuth } from '@/state/auth';
 import { academicDate as academicDateTime } from '@/utils/date';
 import { colors } from '@/theme';
 
-export default function ExpedienteScreen() {
-  const router = useRouter(), { session, signOut } = useAuth(), params = useLocalSearchParams<{ practicaId?: string }>();
+function ExpedienteScreenContent() {
+  const router = useAppRouter(), { session, signOut } = useAuth(), params = useLocalSearchParams<{ practicaId?: string }>();
   const id = typeof params.practicaId === 'string' ? params.practicaId : '';
   const query = useSessionQuery(`expediente:${id}`, useCallback((s: Session, signal: AbortSignal) => getExpediente(s, id, signal), [id]), !!id);
   const data = query.data;
@@ -88,3 +89,5 @@ export default function ExpedienteScreen() {
     </Screen>
   </View>;
 }
+
+export default function ExpedienteScreen(){return <StudentLegacyRoute route="/expediente"><ExpedienteScreenContent /></StudentLegacyRoute>;}
