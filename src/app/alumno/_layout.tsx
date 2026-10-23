@@ -5,7 +5,7 @@ import { StudentProvider } from '@/features/alumno/state';
 import { StudentAppearance, studentColors as c } from '@/theme/student';
 import { TabIcon } from '@/components/ui';
 import { useNotifications } from '@/state/notificaciones';
-export default function StudentLayout(){const notices=useNotifications(),insets=useSafeAreaInsets();return <StudentAppearance.Provider value={true}><StudentProvider><StatusBar style="dark"/><Tabs initialRouteName="inicio" backBehavior="history" screenOptions={{headerShown:false,lazy:true,popToTopOnBlur:false,tabBarActiveTintColor:c.primary,tabBarInactiveTintColor:c.muted,tabBarStyle:{backgroundColor:c.paper,borderTopColor:c.border,paddingTop:7,height:72+insets.bottom,paddingBottom:Math.max(10,insets.bottom)},tabBarLabelStyle:{fontSize:10,paddingBottom:3},sceneStyle:{backgroundColor:c.background}}}>
+export default function StudentLayout(){const notices=useNotifications(),insets=useSafeAreaInsets();return <StudentAppearance.Provider value={true}><StudentProvider><StatusBar style="dark"/><Tabs initialRouteName="inicio" backBehavior="history" screenOptions={{headerShown:false,lazy:true,tabBarHideOnKeyboard:true,popToTopOnBlur:false,tabBarActiveTintColor:c.primary,tabBarInactiveTintColor:c.muted,tabBarStyle:{backgroundColor:c.paper,borderTopColor:c.border,paddingTop:7,height:72+insets.bottom,paddingBottom:Math.max(10,insets.bottom)},tabBarLabelStyle:{fontSize:10,paddingBottom:3},sceneStyle:{backgroundColor:c.background}}}>
  <Tabs.Screen name="index" options={{href:null}}/>
  <Tabs.Screen name="inicio" options={{title:'Inicio',tabBarIcon:({color})=><TabIcon name="home" color={color}/>}}/>
  <Tabs.Screen name="bitacora" options={{title:'Bitácora',tabBarIcon:({color})=><TabIcon name="book" color={color}/>}}/>

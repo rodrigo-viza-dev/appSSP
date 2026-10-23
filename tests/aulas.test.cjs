@@ -10,7 +10,7 @@ function load(file, fetch, dependencies = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText;
   vm.runInNewContext(code, {
-    exports, process: { env: {} }, fetch, AbortController, setTimeout, clearTimeout,
+    exports, process: { env: {} }, fetch, AbortController, URLSearchParams, setTimeout, clearTimeout,
     require: name => { if (!(name in dependencies)) throw new Error(`Unexpected import: ${name}`); return dependencies[name]; },
   });
   return exports;
@@ -43,10 +43,11 @@ test('other roles and empty links never request student resources', async () => 
   await assert.rejects(api.getTarea(session, aula.id, '', signal()), error => error.status === 400);
 });
 
-test('task detail uses the published list and handles a missing task', async () => {
-  const api = service(async url => { assert.ok(url.endsWith('/alumno/aulas/aula-1/tareas')); return response([tarea]); });
+test('task detail requests only the selected task and preserves its availability', async () => {
+  const api = service(async url => { assert.ok(url.endsWith('/alumno/aulas/aula-1/tareas/task-1')); return response({ ...tarea, aulaNombre: aula.nombre, entregaHabilitada: true, bloqueoEntrega: null }); });
   assert.equal((await api.getTarea(session, aula.id, tarea.id, signal())).id, tarea.id);
-  await assert.rejects(api.getTarea(session, aula.id, 'missing', signal()), error => error.status === 404);
+  const missing = service(async () => ({ ok: false, status: 404 }));
+  await assert.rejects(missing.getTarea(session, aula.id, 'missing', signal()), error => error.status === 404);
 });
 
 test('empty tasks and ungraded results remain valid empty data', async () => {
@@ -104,4 +105,20 @@ test('academic dates use Lima time while a date-only deadline keeps its day', ()
   assert.match(academicDate('2026-10-17'), /17/);
   assert.equal(academicDate(null), 'Sin fecha límite');
   assert.equal(academicDate('invalid'), 'Fecha no disponible');
+});
+
+test('task pages send a cursor and filter, preserving global counts and a zero average', async () => {
+  const api=service(async url=>{
+    const parsed=new URL(url);assert.equal(parsed.searchParams.get('estado'),'calificadas');assert.equal(parsed.searchParams.get('cursor'),'date|id');assert.equal(parsed.searchParams.get('limite'),'20');
+    return response({items:[{id:'t',aulaId:aula.id,titulo:'Informe',fechaLimite:null,estado:'CALIFICADA',nota:0}],total:1,siguiente:null,resumen:{total:45,pendientes:44,entregadas:1,calificadas:1,promedio:0}});
+  });
+  const page=await api.getTaskPage(session,aula.id,signal(),'calificadas','date|id');assert.equal(page.resumen.promedio,0);assert.equal(page.items[0].nota,0);
+});
+
+test('task pages reject other classrooms, duplicates, mismatched filters and totals', async () => {
+  const item={id:'t',aulaId:aula.id,titulo:'Informe',fechaLimite:null,estado:'PENDIENTE',nota:null};
+  const base={items:[item],total:1,siguiente:null,resumen:{total:1,pendientes:1,entregadas:0,calificadas:0,promedio:null}};
+  for(const page of [{...base,items:[{...item,aulaId:'foreign'}]},{...base,items:[item,item]},{...base,items:[{...item,estado:'CALIFICADA'}]},{...base,total:0}]){
+    await assert.rejects(service(async()=>response(page)).getTaskPage(session,aula.id,signal(),'pendientes'),e=>e.status===502);
+  }
 });

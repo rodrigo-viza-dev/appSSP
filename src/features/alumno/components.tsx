@@ -1,12 +1,12 @@
 import type { PropsWithChildren } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Badge } from '@/components/ui';
 import type { HoursSummary } from '@/services/alumno';
 import type { PracticaHoras } from '@/services/horas';
 import { studentColors as c } from '@/theme/student';
 import { useAppRouter } from './navigation';
-export function StudentPage({children,title,subtitle,back}:PropsWithChildren<{title:string;subtitle?:string;back?:()=>void}>){return <View style={s.page}><SafeAreaView edges={['top']}><View style={s.heading}>{back&&<Pressable accessibilityRole="button" accessibilityLabel="Volver" style={s.back} onPress={back}><Text style={s.chevron}>‹</Text></Pressable>}<View style={{flex:1}}><Text accessibilityRole="header" style={s.title}>{title}</Text>{!!subtitle&&<Text style={s.muted}>{subtitle}</Text>}</View></View></SafeAreaView><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>{children}</ScrollView></View>;}
+export function StudentPage({children,title,subtitle,back,keyboard=false}:PropsWithChildren<{title:string;subtitle?:string;back?:()=>void;keyboard?:boolean}>){return <View style={s.page}><SafeAreaView edges={['top']}><View style={s.heading}>{back&&<Pressable accessibilityRole="button" accessibilityLabel="Volver" style={s.back} onPress={back}><Text style={s.chevron}>‹</Text></Pressable>}<View style={{flex:1}}><Text accessibilityRole="header" style={s.title}>{title}</Text>{!!subtitle&&<Text style={s.muted}>{subtitle}</Text>}</View></View></SafeAreaView><KeyboardAvoidingView enabled={keyboard} behavior={Platform.OS==='ios'?'padding':'height'} style={{flex:1}}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>{children}</ScrollView></KeyboardAvoidingView></View>;}
 export function StudentRow({title,subtitle,onPress,end}: {title:string;subtitle?:string;onPress?:()=>void;end?:string}){return <Pressable accessibilityRole={onPress?'button':undefined} onPress={onPress} disabled={!onPress} style={s.row}><View style={{flex:1,gap:5}}><Text style={s.rowTitle}>{title}</Text>{!!subtitle&&<Text style={s.muted}>{subtitle}</Text>}</View>{!!end&&<Text style={s.rowTitle}>{end}</Text>}{onPress&&<Text style={s.chevron}>›</Text>}</Pressable>;}
 export function StudentGroup({children}:PropsWithChildren){return <View style={s.group}>{children}</View>;}
 export function HoursSummaryCard({practice,summary}: {practice:PracticaHoras;summary:HoursSummary}){

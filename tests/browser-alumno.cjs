@@ -62,6 +62,7 @@ async function login(name){const env=parseEnv(fs.readFileSync(path.resolve('../a
   const aula=overview.aulas.find(a=>a.estado==='ACTIVA');assert.ok(aula);
   await page.getByRole('button',{name:new RegExp(aula.nombre.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))}).click();
   await heading(page,'Mi aula');
+  await page.getByRole('button',{name:'Todas',exact:true}).click();
   const taskButton=page.getByRole('button',{name:/^Ver tarea:/}).first();await taskButton.waitFor();await taskButton.click();
   await heading(page,'Detalle de tarea');assert.equal(await page.getByRole('tab').count(),5);
   await page.getByText('Mi entrega',{exact:true}).waitFor();

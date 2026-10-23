@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useStudentAppearance } from '@/theme/student';
 import { Text } from 'react-native';
 import { Button, Card, Field, typography } from '@/components/ui';
 import { FilePicker } from './file-picker';
@@ -8,10 +9,12 @@ import { useAuth } from '@/state/auth';
 import { useDraft } from '@/features/shared/use-draft';
 export function DeliveryComposer({ task, onSaved, onBusy }: { task: Tarea; onSaved: () => void; onBusy: (v: boolean) => void }) {
   const { session, signOut } = useAuth();
+  const student=useStudentAppearance(),[filesOpen,setFilesOpen]=useState(false);
   const draft = useDraft('tarea', task.id, task.titulo, { task }, { descripcion: task.entrega?.descripcion ?? '', comentario: task.entrega?.comentario ?? '', archivoId: task.entrega?.archivoId ?? '', motivo: '', revision: task.entrega ? String(task.entrega.revision ?? 0) : '-1' });
   const value = draft.value, change = (key: keyof typeof value, text: string) => draft.setValue(v => ({ ...v, [key]: text }));
   const [review, setReview] = useState(false), [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const fileBusy=useCallback((value:boolean)=>{setUploading(value);onBusy(value);},[onBusy]);
   const replacing = Number(value.revision) >= 0;
   async function send(consult = false) {
     if (!session || busy) return;
@@ -41,7 +44,7 @@ export function DeliveryComposer({ task, onSaved, onBusy }: { task: Tarea; onSav
       <Button title="Guardar envío pendiente en este dispositivo" secondary disabled={busy} onPress={() => void draft.pending().then(() => setError('Envío pendiente guardado. Puedes enviarlo desde Borradores cuando tengas conexión.')).catch(() => setError('No se pudo guardar el envío pendiente.'))} />
       <Button title={busy ? 'Enviando…' : replacing ? 'Confirmar reemplazo' : 'Confirmar entrega'} disabled={busy} onPress={() => void send()} /><Button title="Volver a editar" secondary disabled={busy} onPress={() => setReview(false)} />
     </> : <><Field label="Mi respuesta escrita" value={value.descripcion} onChangeText={v => change('descripcion', v)} multiline maxLength={6000} /><Field label="Comentario adicional" value={value.comentario} onChangeText={v => change('comentario', v)} multiline maxLength={2000} />
-      <FilePicker aulaId={task.aulaId} onSelect={file => change('archivoId', file.id)} onBusy={setUploading} />
+      {(!student||filesOpen)?<FilePicker aulaId={task.aulaId} embedded={student} onSelect={file => change('archivoId', file.id)} onBusy={fileBusy} />:<Button title="Adjuntar documento (opcional)" secondary onPress={()=>setFilesOpen(true)}/>}
       {!!value.archivoId && <><Text style={typography.body}>Documento subido seleccionado para esta entrega.</Text><Button title="Quitar adjunto de esta entrega" secondary onPress={() => change('archivoId', '')} /></>}
       {replacing && <Field label="Motivo del reemplazo" value={value.motivo} onChangeText={v => change('motivo', v)} multiline maxLength={1000} />}
       <Button title="Revisar entrega" disabled={uploading} onPress={() => { if ((!value.descripcion.trim() && !value.archivoId) || replacing && value.motivo.trim().length < 5) { setError('Escribe una respuesta o adjunta un documento; para reemplazar, explica el motivo.'); return; } setError(''); setReview(true); }} />

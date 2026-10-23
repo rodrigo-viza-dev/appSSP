@@ -12,6 +12,10 @@ export type Tarea = {
   id: string; aulaId: string; titulo: string; descripcion: string;
   fechaLimite: string | null; createdAt: string; entrega: Entrega | null;
 };
+export type TareaDetalle = Tarea & { aulaNombre: string; entregaHabilitada: boolean; bloqueoEntrega: string | null };
+export type TaskFilter = 'todas' | 'pendientes' | 'entregadas' | 'calificadas';
+export type TaskRow = { id: string; aulaId: string; titulo: string; fechaLimite: string | null; estado: 'PENDIENTE' | 'ENTREGADA' | 'CALIFICADA'; nota: number | null };
+export type TaskPage = { items: TaskRow[]; total: number; siguiente: string | null; resumen: { total: number; pendientes: number; entregadas: number; calificadas: number; promedio: number | null } };
 export type Calificacion = {
   tareaId: string; tareaTitulo: string; nota: number | null;
   retroalimentacion: string | null; estado: string; entregadaEn: string | null;
@@ -61,13 +65,21 @@ export async function getTareas(session: Session, aulaId: string, signal: AbortS
   return data;
 }
 
-export async function getTarea(session: Session, aulaId: string, tareaId: string, signal: AbortSignal): Promise<Tarea> {
+export async function getTarea(session: Session, aulaId: string, tareaId: string, signal: AbortSignal): Promise<TareaDetalle> {
   if (!tareaId.trim()) throw new ApiError(400, 'El enlace de la tarea no es válido.');
-  // El contrato publicado ofrece el listado del aula, no un GET de tarea individual.
-  const tareas = await getTareas(session, aulaId, signal);
-  const tarea = tareas.find(item => item.id === tareaId);
-  if (!tarea) throw new ApiError(404, 'La tarea no está disponible en esta aula.');
-  return tarea;
+  const tarea = await request<unknown>(`${aulaPath(session, aulaId)}/tareas/${encodeURIComponent(tareaId)}`, session.token, undefined, signal);
+  if (!isTarea(tarea, aulaId, session.user.id) || tarea.id !== tareaId || !('aulaNombre' in tarea) || !text(tarea.aulaNombre) || !('entregaHabilitada' in tarea) || typeof tarea.entregaHabilitada !== 'boolean' || !('bloqueoEntrega' in tarea) || !(tarea.entregaHabilitada ? tarea.bloqueoEntrega === null : text(tarea.bloqueoEntrega) && !!tarea.bloqueoEntrega.trim())) invalidResponse();
+  return tarea as TareaDetalle;
+}
+
+export async function getTaskPage(session: Session, aulaId: string, signal: AbortSignal, filter: TaskFilter = 'pendientes', cursor: string | null = null): Promise<TaskPage> {
+  const params = new URLSearchParams({ estado: filter, limite: '20' });
+  if (cursor) params.set('cursor', cursor);
+  const page = await request<unknown>(`${aulaPath(session, aulaId)}/tareas/pagina?${params}`, session.token, undefined, signal);
+  if (!object(page) || !object(page.resumen)) invalidResponse();
+  const summary = page.resumen;
+  if (!['total','pendientes','entregadas','calificadas'].every(key=>count(summary[key])) || !nullableNumber(summary.promedio) || Number(summary.pendientes)+Number(summary.entregadas)!==summary.total || Number(summary.calificadas)>Number(summary.entregadas) || !count(page.total) || page.total !== (filter==='todas'?summary.total:summary[filter]) || !Array.isArray(page.items) || page.items.length>20 || page.items.length>page.total || !page.items.every(row=>object(row)&&text(row.id)&&!!row.id.trim()&&row.aulaId===aulaId&&text(row.titulo)&&nullableText(row.fechaLimite)&&['PENDIENTE','ENTREGADA','CALIFICADA'].includes(String(row.estado))&&nullableNumber(row.nota)&&(filter==='todas'||filter==='pendientes'&&row.estado==='PENDIENTE'||filter==='entregadas'&&row.estado!=='PENDIENTE'||filter==='calificadas'&&row.estado==='CALIFICADA')) || new Set(page.items.map(row=>row.id)).size!==page.items.length || page.siguiente!==null&&(!text(page.siguiente)||!page.siguiente.trim())) invalidResponse();
+  return page as TaskPage;
 }
 
 export async function getCalificaciones(session: Session, aulaId: string, signal: AbortSignal): Promise<Calificaciones> {

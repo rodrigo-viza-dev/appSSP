@@ -43,7 +43,7 @@ flowchart TD
     M4 --> M41["Perfil de sesión y cerrar sesión"]
 ```
 
-La próxima entrega abre su tarea, registrar actividad abre su formulario y el resumen de horas abre la bitácora. Borradores permite retomar tanto actividades como respuestas de tareas. El expediente conserva su selección de práctica cuando corresponda.
+La próxima entrega abre su tarea, registrar actividad abre su formulario y el resumen de horas abre la bitácora. Preparar entrega abre una pantalla propia dentro de la pestaña de origen; Atrás regresa a la tarea. Aula organiza Tareas, Notas y Recursos. Borradores permite retomar tanto actividades como respuestas de tareas. El expediente conserva su selección de práctica cuando corresponda. Ver [incremento 23](INCREMENTO-23.md).
 
 ## Esqueleto de los cuatro roles
 
@@ -68,7 +68,7 @@ La aplicación contempla los cuatro roles, con interfaces según sus responsabil
 
 La integración Expo debe pedir bloques acotados al servidor, ordenados con un desempate estable por identificador. Aplicar filtros en el servidor, conservar la posición y las filas ya cargadas al abrir un detalle, y renderizar solo las filas necesarias. La siguiente carga debe añadir registros sin duplicarlos ni desplazar al usuario al comienzo. Un fallo al traer más datos conserva lo visible y ofrece reintento.
 
-Los totales de horas y los contadores se calculan sobre el conjunto autorizado completo, no sobre la página visible. Cargar cada módulo al abrirlo y descargar los archivos solo cuando se soliciten. Bitácora y Avisos ya aplican paginación real de 20 filas, filtros en servidor y `FlatList`; otras listas conservan sus API actuales. Quitar un campo de búsqueda por sí solo no reduce los datos descargados.
+Los totales de horas y los contadores se calculan sobre el conjunto autorizado completo, no sobre la página visible. Cargar cada módulo al abrirlo y descargar los archivos solo cuando se soliciten. Bitácora, Avisos y las tareas/notas del aula ya aplican paginación real de 20 filas, filtros en servidor y `FlatList`; otras listas conservan sus API actuales. Abrir una tarea consulta su detalle individual; el historial se solicita aparte. Quitar un campo de búsqueda por sí solo no reduce los datos descargados.
 
 El prototipo HTML muestra ocho actividades iniciales y permite consultar las anteriores en bloques de ocho. Usa datos ficticios que ya están en memoria: demuestra el orden y la presentación progresiva, no paginación de red ni mejoras de rendimiento medidas.
 
