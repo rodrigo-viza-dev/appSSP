@@ -4,12 +4,14 @@ import { Platform } from 'react-native';
 import { API_URL, ApiError, request, type Session } from './api';
 export type Archivo = { id: string; aulaId: string; subidoPorId: string; subidoPorNombre: string; nombreOriginal: string; tipoMime: string; tamanio: number; createdAt: string };
 export type PickedDocument = DocumentPicker.DocumentPickerAsset;
+const configuredLimit=Number(process.env.EXPO_PUBLIC_UPLOAD_MAX_MB||10);
+export const FILE_LIMIT_MB=Number.isSafeInteger(configuredLimit)&&configuredLimit>0&&configuredLimit<=10?configuredLimit:10;
 export const newOperationId = () => randomUUID();
 export async function pickDocument() {
   const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/x-zip-compressed'], copyToCacheDirectory: true, multiple: false });
   if (result.canceled) return null;
   const file = result.assets[0];
-  if (!/\.(pdf|docx|zip)$/i.test(file.name) || !file.size || file.size > 10 * 1024 * 1024) throw new ApiError(400, 'Elige un PDF, DOCX o ZIP de hasta 10 MB.');
+  if (!/\.(pdf|docx|zip)$/i.test(file.name) || !file.size || file.size > FILE_LIMIT_MB * 1024 * 1024) throw new ApiError(400, `Elige un PDF, DOCX o ZIP de hasta ${FILE_LIMIT_MB} MB.`);
   return file;
 }
 export async function getFiles(s: Session, aulaId: string, signal: AbortSignal) {

@@ -6,7 +6,7 @@ import { Screen } from '@/components/screen';
 import { Button, Field, typography } from '@/components/ui';
 import { colors, serif } from '@/theme';
 import { usePractice } from '@/state/practice';
-import { API_URL, IS_LOCAL_API } from '@/services/api';
+import { API_URL, IS_LOCAL_API, PRESENTATION_VERSION } from '@/services/api';
 import { request } from '@/services/api';
 import { GoogleAccess } from '@/features/auth/google-access';
 import { Recovery } from '@/features/auth/recovery';
@@ -38,12 +38,12 @@ export default function LoginScreen() {
     <Screen>
       <View style={{ gap: 8 }}><Text style={typography.title}>Bienvenido a tus prácticas</Text><Text style={typography.body}>Tu experiencia profesional, paso a paso.</Text></View>
       <View style={s.environment}>
-        <Text style={s.environmentTitle}>{IS_LOCAL_API ? 'Entorno de pruebas locales' : 'Acceso a cuenta SSP'}</Text>
-        <Text style={typography.body}>{IS_LOCAL_API ? 'En el formulario SSP usa una cuenta ficticia de pruebas. Para el acceso institucional utiliza el botón de Google cuando esté disponible.' : 'Usa una cuenta registrada en este servidor. Las cuentas de pruebas locales pertenecen a otro entorno.'}</Text>
-        <Text selectable style={s.environmentUrl}>{API_URL}</Text>
+        <Text style={s.environmentTitle}>{PRESENTATION_VERSION ? 'Avance de presentación' : IS_LOCAL_API ? 'Entorno de pruebas locales' : 'Acceso a cuenta SSP'}</Text>
+        <Text style={typography.body}>{PRESENTATION_VERSION ? 'Datos ficticios. Ingresa con las cuentas de revisión incluidas en la entrega.' : IS_LOCAL_API ? 'En el formulario SSP usa una cuenta ficticia de pruebas. Para el acceso institucional utiliza el botón de Google cuando esté disponible.' : 'Usa una cuenta registrada en este servidor. Las cuentas de pruebas locales pertenecen a otro entorno.'}</Text>
+        <Text selectable style={s.environmentUrl}>{PRESENTATION_VERSION ? `Versión ${PRESENTATION_VERSION}` : API_URL}</Text>
       </View>
       {recovery ? <Recovery enabled={access.recuperacion} onCancel={() => setRecovery(false)} /> : <>
-      <GoogleAccess enabled={access.google} />
+      {(!PRESENTATION_VERSION||access.google)&&<GoogleAccess enabled={access.google} />}
       {googleLinkRequired && <View style={{ gap: 12 }}><Text style={typography.body}>Primera vinculación: confirma la contraseña actual de tu cuenta SSP. Después podrás ingresar con Google.</Text>
         <Field label="Contraseña SSP para vincular Google" value={googlePassword} onChangeText={setGooglePassword} secureTextEntry editable={!busy} />
         <Button title="Confirmar vínculo con Google" disabled={busy || !googlePassword} onPress={() => { void linkGoogle(googlePassword); setGooglePassword(''); }} />
@@ -54,9 +54,9 @@ export default function LoginScreen() {
       {authMessage !== '' && <Text accessibilityRole="alert" style={typography.error}>{authMessage}</Text>}
       {message !== '' && <Text accessibilityRole="alert" style={typography.error}>{message}</Text>}
       <Button title={busy ? "Ingresando…" : "Ingresar"} disabled={!ready || busy} onPress={signIn} />
-      <Pressable accessibilityRole="button" disabled={busy} style={s.recovery} onPress={() => setRecovery(true)}><Text style={s.link}>¿Olvidaste tu contraseña?</Text></Pressable>
+      {(!PRESENTATION_VERSION||access.recuperacion)&&<Pressable accessibilityRole="button" disabled={busy} style={s.recovery} onPress={() => setRecovery(true)}><Text style={s.link}>¿Olvidaste tu contraseña?</Text></Pressable>}
       </>}
-      <View style={s.demo}><Text style={s.demoText}>CONOCE LA APLICACIÓN</Text><Button title="Explorar demo" disabled={busy} secondary onPress={enterDemo} /></View>
+      {!PRESENTATION_VERSION&&<View style={s.demo}><Text style={s.demoText}>CONOCE LA APLICACIÓN</Text><Button title="Explorar demo" disabled={busy} secondary onPress={enterDemo} /></View>}
       <Text style={s.footer}>UNSA · Escuela Profesional de Ciencias de la Comunicación</Text>
     </Screen>
   </View>;

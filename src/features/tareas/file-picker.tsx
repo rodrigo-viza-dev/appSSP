@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Button, Card, typography } from '@/components/ui';
 import { Attachment } from '@/components/attachment';
-import { getFiles, newOperationId, pickDocument, uploadDocument, type Archivo, type PickedDocument } from '@/services/archivos';
+import { getFiles, newOperationId, pickDocument, uploadDocument, FILE_LIMIT_MB, type Archivo, type PickedDocument } from '@/services/archivos';
 import { useSessionQuery } from '@/features/shared/use-session-query';
 import { QueryFeedback } from '@/components/query-feedback';
 import { useAuth } from '@/state/auth';
@@ -23,7 +23,7 @@ export function FilePicker({ aulaId, onSelect, onBusy, disabled = false, embedde
     } catch (e) { const reason = e as Error & { status?: number }; if (reason.status === 401) signOut(true); else setError(reason.message || 'No se confirmó la carga. Reintenta la misma solicitud.'); }
     finally { setBusy(false); }
   }
-  const content=<><Text style={typography.title}>Documentos · PDF, DOCX o ZIP</Text><Text style={typography.body}>Hasta 10 MB. Subir un archivo lo conserva, pero debes confirmar la entrega para enviarlo al docente.</Text>
+  const content=<><Text style={typography.title}>Documentos · PDF, DOCX o ZIP</Text><Text style={typography.body}>Hasta {FILE_LIMIT_MB} MB. Subir un archivo lo conserva, pero debes confirmar la entrega para enviarlo al docente.</Text>
     <Button title="Seleccionar documento" secondary disabled={busy || disabled} onPress={() => { setError(''); void pickDocument().then(file => { if (file) { setPicked(file); operation.current = newOperationId(); } }).catch(e => setError(e.message)); }} />
     {picked && <><Text style={typography.body}>{picked.name} · {Math.ceil((picked.size ?? 0) / 1024)} KB</Text><Button title={busy ? 'Subiendo documento…' : 'Subir documento seleccionado'} disabled={busy || disabled} onPress={() => void upload()} /></>}
     {!!error && <Text accessibilityRole="alert" style={typography.error}>{error}</Text>}

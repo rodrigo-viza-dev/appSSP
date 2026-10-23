@@ -1,4 +1,5 @@
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'https://back-cs-de-la-com.vercel.app').replace(/\/$/, '');
+export const PRESENTATION_VERSION = process.env.EXPO_PUBLIC_PRESENTATION_VERSION || '';
 export const IS_LOCAL_API = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/|$)/i.test(API_URL);
 export type Role = 'ALUMNO' | 'PROFESOR' | 'ADMIN' | 'SUPERVISOR';
 export type Session = { token: string; user: { id: string; nombres: string; apellidos: string; email: string; role: Role } };
