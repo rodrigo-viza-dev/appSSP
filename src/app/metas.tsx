@@ -12,6 +12,7 @@ import type { Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
+import { StudentGoals } from '@/features/alumno/practice-goals';
 
 function GoalsScreenContent() {
   const router = useAppRouter(), { session } = useAuth();
@@ -72,4 +73,4 @@ function GoalsScreenContent() {
   </View>;
 }
 
-export default function GoalsScreen(){return <StudentLegacyRoute route="/metas"><GoalsScreenContent /></StudentLegacyRoute>;}
+export default function GoalsScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/metas">{session?.user.role==='ALUMNO'?<StudentGoals />:<GoalsScreenContent />}</StudentLegacyRoute>;}

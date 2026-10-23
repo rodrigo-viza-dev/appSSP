@@ -1,15 +1,14 @@
 import { StudentLegacyRoute, useAppRouter } from '@/features/alumno/navigation';
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
-import { Badge, Button, Card, Header, Label, typography } from '@/components/ui';
+import { Badge, Button } from '@/components/ui';
+import { StudentPage, StudentGroup, StudentRow, studentStyles as s } from '@/features/alumno/components';
 import { RegistrationForm } from '@/features/centro/registration-form';
 import { useStudentQuery } from '@/features/shared/use-student-query';
 import type { Session } from '@/services/api';
 import { getCentro, getSupervisor, registerCentro, registerSupervisor, validateCentro, validateSupervisor, type CentroDraft, type SupervisorDraft } from '@/services/centro';
 import { useAuth } from '@/state/auth';
-import { colors } from '@/theme';
 
 function CentroScreenContent() {
   const router = useAppRouter();
@@ -26,10 +25,8 @@ function CentroScreenContent() {
   const back = () => router.canGoBack() ? router.back() : router.replace('/panel');
   const refresh = () => { setNotice(''); centro.retry(); };
 
-  return <View style={{ flex: 1, backgroundColor: colors.white }}>
-    <Header title="Mi centro de prácticas" subtitle="Tu experiencia profesional" back={back} />
-    <Screen>
-      {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
+  return <StudentPage title="Centro y supervisor" subtitle="Los datos de tu experiencia profesional." back={back} keyboard>
+      {!!notice && <Text accessibilityLiveRegion="polite" style={s.muted}>{notice}</Text>}
       <QueryFeedback {...centro} notFound="La ficha del centro no está disponible. Consulta con la coordinación." />
       {!centro.loading && !centro.error && !data && <>
         <Badge title="Centro por registrar" tone="warning" />
@@ -46,13 +43,13 @@ function CentroScreenContent() {
           onSaved={result => { centro.setData(result); setNotice('Centro registrado correctamente.'); }} />
       </>}
       {data && <>
-        <Card>
-          <Label>CENTRO DE PRÁCTICAS</Label><Text accessibilityRole="header" style={typography.title}>{data.razonSocial}</Text>
+        <View style={{ gap: 12 }}>
+          <Text style={s.eyebrow}>Centro de prácticas</Text><Text accessibilityRole="header" style={s.hero}>{data.razonSocial}</Text>
           <Badge title="Centro registrado" tone="neutral" />
-          <Text style={typography.body}>RUC: {data.ruc}</Text><Text style={typography.body}>{data.direccion}</Text>
-          <Text style={typography.body}>Sector: {data.sector}</Text><Text style={typography.body}>Teléfono: {data.telefono}</Text><Text style={typography.body}>Correo: {data.email}</Text>
-        </Card>
-        <Text accessibilityRole="header" style={typography.title}>Supervisor del centro</Text>
+          <Text selectable style={s.muted}>RUC {data.ruc} · {data.sector}</Text>
+        </View>
+        <StudentGroup><StudentRow title="Dirección" subtitle={data.direccion} /><StudentRow title="Correo del centro" subtitle={data.email} /><StudentRow title="Teléfono del centro" subtitle={data.telefono} /></StudentGroup>
+        <Text accessibilityRole="header" style={s.sectionTitle}>Tu supervisor</Text>
         <QueryFeedback {...supervisor} notFound="El supervisor no está disponible. Actualiza tu ficha." />
         {!supervisor.loading && !supervisor.error && !contact && <>
           <Badge title="Supervisor por registrar" tone="warning" />
@@ -68,16 +65,15 @@ function CentroScreenContent() {
             submit={(value, signal) => registerSupervisor(session!, data, value, signal)}
             onSaved={result => { supervisor.setData(result); setNotice('Contacto del supervisor registrado correctamente.'); }} />
         </>}
-        {contact && <Card>
-          <Label>CONTACTO DE SUPERVISIÓN</Label><Text style={typography.title}>{contact.nombres} {contact.apellidos}</Text>
+        {contact && <>
+          <View style={{ gap: 12 }}><Text accessibilityRole="header" style={s.title}>{contact.nombres} {contact.apellidos}</Text><Text style={s.muted}>{contact.cargo}</Text>
           <Badge title={contact.userId ? 'Cuenta vinculada' : 'Contacto registrado'} tone="neutral" />
-          <Text style={typography.body}>{contact.cargo}</Text><Text style={typography.body}>Correo: {contact.email}</Text><Text style={typography.body}>Teléfono: {contact.telefono}</Text>
-        </Card>}
-        <Text style={typography.body}>Registrar el contacto del supervisor no crea una cuenta de acceso para esa persona. La coordinación gestiona la asignación de tu práctica y los cambios en la ficha.</Text>
+          </View><StudentGroup><StudentRow title="Correo del supervisor" subtitle={contact.email} /><StudentRow title="Teléfono del supervisor" subtitle={contact.telefono} /></StudentGroup>
+        </>}
+        <View style={s.notice}><Text style={s.rowTitle}>¿Necesitas cambiar algún dato?</Text><Text style={s.muted}>La coordinación gestiona los cambios y la asignación de tu práctica. Registrar un contacto no crea una cuenta de acceso para el supervisor.</Text></View>
         <Button title="Actualizar ficha" secondary onPress={refresh} />
       </>}
-    </Screen>
-  </View>;
+  </StudentPage>;
 }
 
 export default function CentroScreen(){return <StudentLegacyRoute route="/centro"><CentroScreenContent /></StudentLegacyRoute>;}

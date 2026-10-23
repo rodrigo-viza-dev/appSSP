@@ -14,6 +14,7 @@ import { descargarExpedientePdf } from '@/services/descargar-pdf';
 import { useAuth } from '@/state/auth';
 import { academicDate as academicDateTime } from '@/utils/date';
 import { colors } from '@/theme';
+import { StudentPracticeRecord } from '@/features/alumno/practice-record';
 
 function ExpedienteScreenContent() {
   const router = useAppRouter(), { session, signOut } = useAuth(), params = useLocalSearchParams<{ practicaId?: string }>();
@@ -90,4 +91,4 @@ function ExpedienteScreenContent() {
   </View>;
 }
 
-export default function ExpedienteScreen(){return <StudentLegacyRoute route="/expediente"><ExpedienteScreenContent /></StudentLegacyRoute>;}
+export default function ExpedienteScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/expediente">{session?.user.role==='ALUMNO'?<StudentPracticeRecord />:<ExpedienteScreenContent />}</StudentLegacyRoute>;}

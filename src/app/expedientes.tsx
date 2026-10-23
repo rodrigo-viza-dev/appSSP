@@ -8,6 +8,8 @@ import { Screen } from '@/components/screen';
 import { useSessionQuery } from '@/features/shared/use-session-query';
 import { getPracticasExpedientes } from '@/services/expedientes';
 import { colors } from '@/theme';
+import { useAuth } from '@/state/auth';
+import { StudentPracticeRecords } from '@/features/alumno/practice-record';
 
 function ExpedientesScreenContent() {
   const router = useAppRouter(), params = useLocalSearchParams<{ aulaId?: string; alumnoId?: string }>();
@@ -30,4 +32,4 @@ function ExpedientesScreenContent() {
   </View>;
 }
 
-export default function ExpedientesScreen(){return <StudentLegacyRoute route="/expedientes"><ExpedientesScreenContent /></StudentLegacyRoute>;}
+export default function ExpedientesScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/expedientes">{session?.user.role==='ALUMNO'?<StudentPracticeRecords />:<ExpedientesScreenContent />}</StudentLegacyRoute>;}

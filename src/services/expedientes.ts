@@ -15,35 +15,50 @@ export type Expediente = {
   puedeCerrar: boolean; cerrado: boolean; revision: string;
   cierre: { version: number; fecha: string; responsable: string; responsableId: string; motivo: string; revisionConfirmada: string } | null;
 };
+export type ExpedienteResumen = Pick<Expediente, 'practica' | 'centro' | 'supervisor' | 'evaluacion' | 'evaluacionVigente' | 'checklist' | 'puedeCerrar' | 'cerrado' | 'cierre'> & {
+  configuracion: Pick<Requisitos, 'notaMinima' | 'motivo' | 'responsable' | 'fecha'> | null;
+};
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === 'string';
 const count = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 const texts = (v: unknown): v is string[] => Array.isArray(v) && v.every(text) && new Set(v).size === v.length;
 const grade = (v: unknown) => v === null || count(v) && v <= 20;
 function invalid(): never { throw new ApiError(502, 'El expediente recibido no es compatible. Actualiza los datos.'); }
-function parse(v: unknown, id: string): Expediente {
+function parseResumen(v: unknown, id: string): ExpedienteResumen {
   if (!object(v) || !object(v.practica) || v.practica.id !== id || !['practicanteId', 'practicanteNombre', 'aulaId', 'aulaNombre', 'docenteNombre', 'periodo', 'estado'].every(k => text((v.practica as Record<string, unknown>)[k])) || !count(v.practica.horasMinimas) || !count(v.practica.horasValidadas)) invalid();
-  if (!count(v.revisionConfiguracion) || !text(v.revision) || !/^[a-f0-9]{64}$/.test(v.revision) || typeof v.puedeCerrar !== 'boolean' || typeof v.cerrado !== 'boolean' || typeof v.evaluacionVigente !== 'boolean') invalid();
+  if (typeof v.puedeCerrar !== 'boolean' || typeof v.cerrado !== 'boolean' || typeof v.evaluacionVigente !== 'boolean') invalid();
   if (v.centro !== null && (!object(v.centro) || !['id', 'nombre', 'ruc', 'direccion'].every(k => text((v.centro as Record<string, unknown>)[k])))) invalid();
   if (v.supervisor !== null && (!object(v.supervisor) || !text(v.supervisor.id) || !text(v.supervisor.nombre) || !(v.supervisor.userId === null || text(v.supervisor.userId)) || !text(v.supervisor.cargo))) invalid();
-  if (v.configuracion !== null && (!object(v.configuracion) || !texts(v.configuracion.tareas) || !texts(v.configuracion.metas) || !grade(v.configuracion.notaMinima) || !['motivo', 'responsable', 'responsableId', 'fecha'].every(k => text((v.configuracion as Record<string, unknown>)[k])))) invalid();
+  if (v.configuracion !== null && (!object(v.configuracion) || !grade(v.configuracion.notaMinima) || !['motivo', 'responsable', 'fecha'].every(k => text((v.configuracion as Record<string, unknown>)[k])))) invalid();
   if (v.evaluacion !== null && (!object(v.evaluacion) || !count(v.evaluacion.revision) || v.evaluacion.conformidad !== true || !['FAVORABLE', 'REQUIERE_MEJORAS'].includes(String(v.evaluacion.conclusion)) || !['desempeno', 'fortalezas', 'mejoras', 'supervisorId', 'supervisorNombre', 'empresaId', 'fecha'].every(k => text((v.evaluacion as Record<string, unknown>)[k])))) invalid();
+  if (!Array.isArray(v.checklist) || !v.checklist.every(c => object(c) && text(c.id) && text(c.titulo) && text(c.detalle) && typeof c.cumplido === 'boolean')) invalid();
+  if (v.cierre !== null && (!object(v.cierre) || v.cierre.version !== 1 || !['fecha', 'responsable', 'responsableId', 'motivo', 'revisionConfirmada'].every(k => text((v.cierre as Record<string, unknown>)[k])))) invalid();
+  return v as ExpedienteResumen;
+}
+function parse(v: unknown, id: string): Expediente {
+  parseResumen(v, id);
+  if (!object(v) || !count(v.revisionConfiguracion) || !text(v.revision) || !/^[a-f0-9]{64}$/.test(v.revision)) invalid();
+  if (v.configuracion !== null && (!object(v.configuracion) || !texts(v.configuracion.tareas) || !texts(v.configuracion.metas) || !text(v.configuracion.responsableId))) invalid();
   if (!Array.isArray(v.tareas) || !v.tareas.every(t => object(t) && text(t.id) && text(t.titulo) && typeof t.obligatoria === 'boolean' && typeof t.cumplida === 'boolean' && grade(t.nota) && (t.entregaId === null || text(t.entregaId)) && (t.retroalimentacion === null || text(t.retroalimentacion)))) invalid();
   if (!Array.isArray(v.metas) || !v.metas.every(m => object(m) && text(m.id) && text(m.tipo) && text(m.descripcion) && count(m.objetivo) && count(m.alcanzada) && typeof m.obligatoria === 'boolean' && typeof m.cumplida === 'boolean')) invalid();
   if (!Array.isArray(v.horas) || !v.horas.every(h => object(h) && text(h.id) && text(h.fecha) && count(h.horas) && text(h.descripcion) && text(h.estado) && text(h.observacion))) invalid();
-  if (!Array.isArray(v.checklist) || !v.checklist.every(c => object(c) && text(c.id) && text(c.titulo) && text(c.detalle) && typeof c.cumplido === 'boolean')) invalid();
-  if (v.cierre !== null && (!object(v.cierre) || v.cierre.version !== 1 || !['fecha', 'responsable', 'responsableId', 'motivo', 'revisionConfirmada'].every(k => text((v.cierre as Record<string, unknown>)[k])))) invalid();
   return v as Expediente;
 }
 export async function getPracticasExpedientes(s: Session, signal: AbortSignal): Promise<PracticaExpediente[]> {
   const caps = await request<unknown>('/expedientes/capacidades', s.token, undefined, signal);
   if (!object(caps) || caps.versionExpediente !== 1) throw new ApiError(502, 'El servidor aún no ofrece evaluación y expediente.');
   const values = await request<unknown>('/practicas', s.token, undefined, signal);
-  if (!Array.isArray(values) || !values.every(p => object(p) && ['id', 'practicanteId', 'practicanteNombre', 'aulaId', 'aulaNombre', 'periodo', 'estado'].every(k => text(p[k])) && count(p.horasAcumuladas) && count(p.horasMinimas))) invalid();
+  if (!Array.isArray(values) || !values.every(p => object(p) && ['id', 'practicanteId', 'practicanteNombre', 'aulaId', 'aulaNombre', 'periodo', 'estado'].every(k => text(p[k])) && count(p.horasAcumuladas) && count(p.horasMinimas) && (s.user.role !== 'ALUMNO' || p.practicanteId === s.user.id)) || new Set(values.map(p => p.id)).size !== values.length) invalid();
   return values as PracticaExpediente[];
 }
 const path = (id: string) => `/expedientes/${encodeURIComponent(id)}`;
 export async function getExpediente(s: Session, id: string, signal: AbortSignal) { return parse(await request<unknown>(path(id), s.token, undefined, signal), id); }
+export async function getExpedienteResumen(s: Session, id: string, signal: AbortSignal) {
+  if (s.user.role !== 'ALUMNO') throw new ApiError(403, 'Este resumen corresponde al recorrido del alumno.');
+  const data = parseResumen(await request<unknown>(`${path(id)}/resumen`, s.token, undefined, signal), id);
+  if (data.practica.practicanteId !== s.user.id) invalid();
+  return data;
+}
 export async function guardarRequisitos(s: Session, data: Expediente, values: { tareas: string[]; metas: string[]; notaMinima: number | null; motivo: string }, signal: AbortSignal) {
   return parse(await request<unknown>(`${path(data.practica.id)}/requisitos`, s.token, { ...values, revision: data.revisionConfiguracion }, signal, { method: 'PUT' }), data.practica.id);
 }

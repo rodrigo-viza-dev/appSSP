@@ -45,6 +45,8 @@ flowchart TD
 
 La próxima entrega abre su tarea, registrar actividad abre su formulario y el resumen de horas abre la bitácora. Preparar entrega abre una pantalla propia dentro de la pestaña de origen; Atrás regresa a la tarea. Aula organiza Tareas, Notas y Recursos. Borradores permite retomar tanto actividades como respuestas de tareas. El expediente conserva su selección de práctica cuando corresponda. Ver [incremento 23](INCREMENTO-23.md).
 
+El [incremento 25](INCREMENTO-25.md) completa la presentación interior de Centro y supervisor, Metas y Expediente. Desde el expediente se abre la práctica exacta en metas y se puede volver conservando los detalles desplegados; la bitácora corresponde a su pestaña principal. El resumen del expediente omite el historial completo y el PDF se solicita al descargarlo. La versión de presentación del 23 de octubre está separada de este desarrollo.
+
 ## Esqueleto de los cuatro roles
 
 | Rol | Destinos principales propuestos | Organización interior |
