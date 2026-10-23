@@ -1,6 +1,6 @@
 # Ro como referencia para PrácticasCC
 
-Revisión del 22 de octubre de 2026. Dirección propuesta, pendiente de revisión visual del usuario. No modifica todavía las pantallas Expo ni sus servicios.
+Revisión del 22 de octubre de 2026. El usuario acepta la dirección visual y el orden general; pide priorizar al alumno, retirar sus buscadores y preparar listas ligeras. No modifica todavía las pantallas Expo ni sus servicios.
 
 ## Qué se investigó
 
@@ -50,7 +50,9 @@ Marca y perfil compactos → saludo breve y situación actual → próxima entre
 
 La información de avance conserva las distinciones del sistema: 100 h validadas + 48 h pendientes = 148 h registradas. La barra de una meta usa únicamente las validadas. **200 h es un dato ficticio del prototipo**, no una norma UNSA; en el producto se toma la meta configurada para esa práctica.
 
-Conservar el granate institucional **#5E151D**, neutros cálidos y estados acompañados por texto. Esta exploración usa tipografía de sistema sin serif para títulos y cifras; propone una alternativa a la dirección anterior, no una nueva tipografía institucional. La selección final sigue pendiente.
+Refinamiento aceptado: la bitácora del alumno muestra directamente las actividades recientes y filtros de estado, sin buscador. Presenta ocho registros y permite consultar los anteriores en bloques. La búsqueda se reserva para listas docentes que la necesitan, como alumnos y entregas. La [prioridad por rol y carga ligera](MAPA-NAVEGACION.md#prioridad-y-búsquedas-por-rol) detalla la integración pendiente: paginación en el servidor, conservación del contexto y totales independientes de la página visible.
+
+Conservar el granate institucional **#5E151D**, neutros cálidos y estados acompañados por texto. La dirección aceptada usa tipografía de sistema sin serif para títulos y cifras; no constituye una nueva tipografía institucional. Los ajustes finos se revisan al integrar las pantallas.
 
 En Android se deben verificar áreas seguras, teclado, botón Atrás, tamaño de texto, controles de al menos 48 dp y respuesta al gesto de volver. La apariencia iOS de Ro no determina esos comportamientos. Las animaciones se decidirán al integrar el recorrido; las imágenes estáticas no permiten reconstruir las de Ro.
 
@@ -75,4 +77,6 @@ El prototipo conserva cambios solo en memoria hasta recargar. En el escenario si
 
 Revisión focal con Node y Chromium de Windows: Inicio a 360, 390 y 430 px, y recorrido a 390 px. Se comprobaron las cinco pestañas visibles, ausencia de desbordamiento horizontal en las vistas inspeccionadas, conservación de filtros/contexto, borradores independientes, revisión antes del envío, retorno desde avisos y estados alternativos. Cero errores de página y peticiones externas. Las evidencias locales quedan fuera de Git en `.expo/dev/prototipo-*`; no constituyen una prueba de APK.
 
-Primero revisar jerarquía, claridad y navegación con este material. Después trasladar el recorrido elegido a Expo, extendiendo la navegación persistente a las cuentas autenticadas. Probar entonces Android físico y el primer APK con Google nativo; completar luego las vistas de docente, supervisor y administración sobre las mismas reglas.
+El ajuste de bitácora también se verificó a 360, 390 y 430 px: sin buscador ni desbordamiento, ocho registros iniciales en orden reciente, ampliación a 16 y 18 sin duplicados, conservación al volver del detalle y reinicio del bloque al filtrar. Los totales no cambian al ampliar la lista. Cero errores de página y peticiones externas; reporte local `.expo/dev/bitacora-sin-busqueda-verificacion.json`. La imagen de Bitácora en FigJam se actualizó sobre la misma capa.
+
+Con la dirección visual aceptada, el siguiente bloque es trasladar el recorrido del alumno a Expo, extendiendo la navegación persistente a las cuentas autenticadas e incorporando la carga ligera real. Probar entonces Android físico y el primer APK con Google nativo; completar luego las vistas de docente, supervisor y administración sobre las mismas reglas.

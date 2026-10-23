@@ -1,6 +1,6 @@
 # PrácticasCC · Propuesta de navegación y trabajo en Figma
 
-Estado: propuesta para revisar. Conserva los módulos y permisos existentes; todavía no cambia la navegación de la app. La primera implementación se centrará en el alumno.
+Estado: dirección visual y orden general aceptados por el usuario, con ajustes de búsqueda y carga ligera. Conserva los módulos y permisos existentes; todavía no cambia la navegación Expo. La primera implementación se centrará en el alumno.
 
 ## Mapa del alumno para FigJam
 
@@ -54,6 +54,22 @@ La próxima entrega abre su tarea, registrar actividad abre su formulario y el r
 | Administración | Inicio · Gestión · Reportes · Avisos · Más | Gestión: usuarios/roles, aulas/matrículas, asignaciones/supervisores, auditoría y operaciones docentes/expedientes autorizadas. Más: guía y cuenta. |
 
 Son agrupaciones de presentación. Las pantallas que necesitan aula, alumno o práctica deben ofrecer primero esa selección; no se presupone un endpoint global nuevo. Los datos y las acciones siguen limitados por los permisos del servidor. La mensajería privada corresponde a alumno/docente; el supervisor no autoriza el cierre.
+
+## Prioridad y búsquedas por rol
+
+La aplicación contempla los cuatro roles, con interfaces según sus responsabilidades. Primero se completa e integra el recorrido del alumno; después se adapta la experiencia docente y se extiende el diseño a supervisor y administración. La prioridad de diseño no elimina sus funciones existentes.
+
+- **Alumno:** sin campos de búsqueda de texto en las listas de esta primera etapa. Mostrar su contenido directamente: bitácora por fecha descendente y filtros de estado, tareas por plazo y aulas activas claramente identificadas. Conservar el contexto y evitar controles que no aporten a su recorrido.
+- **Docente:** incorporar búsqueda donde gestiona volumen, como alumnos, matrículas y entregas, dentro del aula o ámbito autorizado. Combinarla con filtros de revisión; no añadir un buscador a cada pantalla por defecto.
+- **Supervisor y administración:** su adaptación visual se aborda después. No extender automáticamente los controles del docente al resto de roles.
+
+## Carga ligera de listas
+
+La integración Expo debe pedir bloques acotados al servidor, ordenados con un desempate estable por identificador. Aplicar filtros en el servidor, conservar la posición y las filas ya cargadas al abrir un detalle, y renderizar solo las filas necesarias. La siguiente carga debe añadir registros sin duplicarlos ni desplazar al usuario al comienzo. Un fallo al traer más datos conserva lo visible y ofrece reintento.
+
+Los totales de horas y los contadores se calculan sobre el conjunto autorizado completo, no sobre la página visible. Cargar cada módulo al abrirlo y descargar los archivos solo cuando se soliciten. Estos son requisitos de integración pendientes; quitar un campo de búsqueda por sí solo no reduce los datos descargados.
+
+El prototipo HTML muestra ocho actividades iniciales y permite consultar las anteriores en bloques de ocho. Usa datos ficticios que ya están en memoria: demuestra el orden y la presentación progresiva, no paginación de red ni mejoras de rendimiento medidas.
 
 ## Comportamientos que debemos dibujar y comprobar
 

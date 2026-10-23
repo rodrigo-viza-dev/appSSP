@@ -27,6 +27,8 @@ Propuesta inicial de cinco destinos para el alumno: **Inicio, Bitácora, Aulas, 
 
 Las pantallas de detalle deben conservar el contexto al volver, con títulos claros y comportamiento coherente del botón Atrás de Android. Los otros roles necesitan destinos propios según sus tareas.
 
+Decisión posterior del usuario: priorizar al alumno y después al docente. En esta primera etapa el alumno recibe listas ordenadas y filtros de estado, sin buscadores de texto. El docente sí necesita búsqueda de alumnos y entregas dentro de sus aulas. Preparar carga por bloques y conservación de contexto; la paginación de red se integra después con los servicios reales. Ver las reglas actualizadas en el mapa de navegación.
+
 | Rol | Trabajo principal que debe poder representarse |
 | --- | --- |
 | Alumno | Consultar aulas, tareas, notas y avisos; registrar/corregir actividades; ver revisión de horas; entregar texto/archivo y consultar versiones; centro y supervisor; metas, expediente, mensajes, comunidad, documentos y borradores. |
