@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL, type Session } from '@/services/api';
-export type Draft = { version: 1; api: string; userId: string; kind: 'horas' | 'tarea'; resource: string; title: string; context: unknown; value: Record<string, string>; status: 'BORRADOR' | 'POR_ENVIAR'; updatedAt: string };
+export type Draft = { version: 1; api: string; userId: string; kind: 'horas' | 'tarea' | 'comunicacion'; resource: string; title: string; context: unknown; value: Record<string, string>; status: 'BORRADOR' | 'POR_ENVIAR'; updatedAt: string };
 const prefix = (s: Session) => `ssp.draft.v1:${encodeURIComponent(API_URL)}:${encodeURIComponent(s.user.id)}:`;
 export const draftKey = (s: Session, kind: Draft['kind'], resource: string) => `${prefix(s)}${kind}:${encodeURIComponent(resource)}`;
 let writes = Promise.resolve();
@@ -15,7 +15,7 @@ export async function readDraft(s: Session, key: string) {
   const v: unknown = JSON.parse(raw);
   if (!v || typeof v !== 'object') throw new Error('Borrador incompatible.');
   const d = v as Draft;
-  if (d.version !== 1 || d.api !== API_URL || d.userId !== s.user.id || !['horas', 'tarea'].includes(d.kind) || !['BORRADOR', 'POR_ENVIAR'].includes(d.status) || !d.value || typeof d.value !== 'object' || !Object.values(d.value).every(v => typeof v === 'string') || draftKey(s, d.kind, d.resource) !== key) throw new Error('Borrador incompatible con esta cuenta o entorno.');
+  if (d.version !== 1 || d.api !== API_URL || d.userId !== s.user.id || !['horas', 'tarea', 'comunicacion'].includes(d.kind) || !['BORRADOR', 'POR_ENVIAR'].includes(d.status) || typeof d.resource !== 'string' || typeof d.title !== 'string' || typeof d.updatedAt !== 'string' || !d.value || typeof d.value !== 'object' || Array.isArray(d.value) || !Object.values(d.value).every(v => typeof v === 'string') || draftKey(s, d.kind, d.resource) !== key) throw new Error('Borrador incompatible con esta cuenta o entorno.');
   return d;
 }
 export async function listDrafts(s: Session) {

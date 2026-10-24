@@ -13,6 +13,7 @@ import { ApiError, type Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
+import { StudentConversation } from '@/features/alumno/communication';
 
 function ConversationScreenContent() {
   const router = useAppRouter(), { session, signOut } = useAuth(), params = useLocalSearchParams<{ aulaId?: string; contactoId?: string }>();
@@ -55,4 +56,4 @@ function ConversationScreenContent() {
   </View>;
 }
 
-export default function ConversationScreen(){return <StudentLegacyRoute route="/conversacion"><ConversationScreenContent /></StudentLegacyRoute>;}
+export default function ConversationScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/conversacion">{session?.user.role==='ALUMNO'?<StudentConversation />:<ConversationScreenContent />}</StudentLegacyRoute>;}

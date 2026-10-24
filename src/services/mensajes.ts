@@ -6,7 +6,7 @@ const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v ===
 const text = (v: unknown): v is string => typeof v === 'string' && !!v.trim();
 function invalid(): never { throw new ApiError(502, 'La conversación no es compatible. Consulta los datos actuales.'); }
 function member(s: Session) { if (!['ALUMNO', 'PROFESOR'].includes(s.user.role)) throw new ApiError(403, 'Mensajería privada entre docente y alumno del aula.'); }
-function parse(v: unknown, s: Session, aulaId: string, peerId: string): Mensaje {
+export function parse(v: unknown, s: Session, aulaId: string, peerId: string): Mensaje {
   if (!object(v) || !text(v.id) || v.aulaId !== aulaId || !text(v.remitenteNombre) || !text(v.texto) || typeof v.mio !== 'boolean' || typeof v.leido !== 'boolean' || !text(v.fecha) || !Number.isFinite(Date.parse(v.fecha)) || v.remitenteId !== (v.mio ? s.user.id : peerId) || v.destinatarioId !== (v.mio ? peerId : s.user.id)) invalid();
   return v as Mensaje;
 }

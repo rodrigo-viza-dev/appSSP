@@ -16,15 +16,15 @@ function list<T extends { id: string }>(v: unknown, parse: (v: unknown) => T): T
   if (new Set(rows.map(r => r.id)).size !== rows.length) invalid();
   return rows;
 }
-function announcement(v: unknown, aulaId: string): Anuncio {
+export function announcement(v: unknown, aulaId: string): Anuncio {
   if (!object(v) || !text(v.id) || v.aulaId !== aulaId || !text(v.autorNombre) || !text(v.titulo) || !text(v.mensaje) || typeof v.fijado !== 'boolean' || !date(v.fecha)) invalid();
   return v as Anuncio;
 }
-function thread(v: unknown, aulaId: string): Hilo {
+export function thread(v: unknown, aulaId: string): Hilo {
   if (!object(v) || !text(v.id) || v.aulaId !== aulaId || !text(v.autorNombre) || !text(v.titulo) || !Number.isSafeInteger(v.respuestas) || Number(v.respuestas) < 0 || !date(v.fecha)) invalid();
   return v as Hilo;
 }
-function message(v: unknown, hiloId: string): MensajeForo {
+export function message(v: unknown, hiloId: string): MensajeForo {
   if (!object(v) || !text(v.id) || v.hiloId !== hiloId || !text(v.autorNombre) || !text(v.texto) || !date(v.fecha)) invalid();
   return v as MensajeForo;
 }

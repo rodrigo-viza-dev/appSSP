@@ -12,6 +12,7 @@ import { syncPendingDrafts } from '@/services/sync-drafts';
 import type { PracticaHoras, RegistroHoras } from '@/services/horas';
 import type { Tarea } from '@/services/aulas';
 import { colors } from '@/theme';
+import { StudentDrafts } from '@/features/alumno/drafts-guide';
 type Entries = Awaited<ReturnType<typeof listDrafts>>;
 function DraftsScreenContent() {
   const { session, signOut } = useAuth(), router = useAppRouter();
@@ -39,4 +40,4 @@ function DraftsScreenContent() {
   </Screen></View>;
 }
 
-export default function DraftsScreen(){return <StudentLegacyRoute route="/borradores"><DraftsScreenContent /></StudentLegacyRoute>;}
+export default function DraftsScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/borradores">{session?.user.role==='ALUMNO'?<StudentDrafts />:<DraftsScreenContent />}</StudentLegacyRoute>;}

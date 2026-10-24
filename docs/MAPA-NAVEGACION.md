@@ -47,6 +47,8 @@ La próxima entrega abre su tarea, registrar actividad abre su formulario y el r
 
 El [incremento 25](INCREMENTO-25.md) completa la presentación interior de Centro y supervisor, Metas y Expediente. Desde el expediente se abre la práctica exacta en metas y se puede volver conservando los detalles desplegados; la bitácora corresponde a su pestaña principal. El resumen del expediente omite el historial completo y el PDF se solicita al descargarlo. La versión de presentación del 23 de octubre está separada de este desarrollo.
 
+El [incremento 26](INCREMENTO-26.md) adapta Mensajes/Conversación, Comunidad/Foro/Anuncio, Documentos, Borradores y Guía. Los accesos conservan la pestaña de origen. Abrir un anuncio descarga su texto individual; las conversaciones consultan mensajes recientes y anteriores por páginas. Los formularios de comunicación permiten guardar y volver y retomar su borrador desde Más. Las listas de documentos distinguen materiales y cargas propias; descargar, subir y confirmar una entrega son acciones diferentes.
+
 ## Esqueleto de los cuatro roles
 
 | Rol | Destinos principales propuestos | Organización interior |
@@ -71,6 +73,8 @@ La aplicación contempla los cuatro roles, con interfaces según sus responsabil
 La integración Expo debe pedir bloques acotados al servidor, ordenados con un desempate estable por identificador. Aplicar filtros en el servidor, conservar la posición y las filas ya cargadas al abrir un detalle, y renderizar solo las filas necesarias. La siguiente carga debe añadir registros sin duplicarlos ni desplazar al usuario al comienzo. Un fallo al traer más datos conserva lo visible y ofrece reintento.
 
 Los totales de horas y los contadores se calculan sobre el conjunto autorizado completo, no sobre la página visible. Cargar cada módulo al abrirlo y descargar los archivos solo cuando se soliciten. Bitácora, Avisos y las tareas/notas del aula ya aplican paginación real de 20 filas, filtros en servidor y `FlatList`; otras listas conservan sus API actuales. Abrir una tarea consulta su detalle individual; el historial se solicita aparte. Quitar un campo de búsqueda por sí solo no reduce los datos descargados.
+
+Desde el incremento 26, el alumno también usa páginas reales de 20 para mensajes, temas/respuestas, anuncios y documentos. Los anuncios devuelven extractos y su detalle individual; listar documentos no descarga bytes. Metas y listado de prácticas aún usan sus consultas completas. Las vistas de los otros roles conservan sus API actuales hasta su adaptación.
 
 El prototipo HTML muestra ocho actividades iniciales y permite consultar las anteriores en bloques de ocho. Usa datos ficticios que ya están en memoria: demuestra el orden y la presentación progresiva, no paginación de red ni mejoras de rendimiento medidas.
 

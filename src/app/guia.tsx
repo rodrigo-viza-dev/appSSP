@@ -6,6 +6,7 @@ import { Screen } from '@/components/screen';
 import { guideArticles } from '@/content/guide';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
+import { StudentGuide } from '@/features/alumno/drafts-guide';
 
 function GuideScreenContent() {
   const router = useAppRouter(), { session } = useAuth();
@@ -31,4 +32,4 @@ function GuideScreenContent() {
   </View>;
 }
 
-export default function GuideScreen(){return <StudentLegacyRoute route="/guia"><GuideScreenContent /></StudentLegacyRoute>;}
+export default function GuideScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/guia">{session?.user.role==='ALUMNO'?<StudentGuide />:<GuideScreenContent />}</StudentLegacyRoute>;}

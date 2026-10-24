@@ -12,6 +12,7 @@ import { ApiError, type Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
+import { StudentForum } from '@/features/alumno/communication';
 
 function ForumScreenContent() {
   const router = useAppRouter(), params = useLocalSearchParams<{ aulaId?: string; hiloId?: string }>();
@@ -49,4 +50,4 @@ function ForumScreenContent() {
   </View>;
 }
 
-export default function ForumScreen(){return <StudentLegacyRoute route="/foro"><ForumScreenContent /></StudentLegacyRoute>;}
+export default function ForumScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/foro">{session?.user.role==='ALUMNO'?<StudentForum />:<ForumScreenContent />}</StudentLegacyRoute>;}

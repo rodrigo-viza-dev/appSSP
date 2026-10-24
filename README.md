@@ -14,7 +14,7 @@ npm run web
 
 Abrir `http://localhost:5173`. `npm run web` usa ahora la API local de pruebas y comprueba su conexión a Supabase antes de iniciar Expo. Rechaza un segundo servidor en 5173: detener el anterior con Ctrl+C. Usar `localhost` para conservar el origen autorizado.
 
-Para Android en la misma Wi-Fi, iniciar el backend con `scripts\iniciar-pruebas.ps1 -Lan` y la app con `npm run movil:pruebas`. Usar Expo Go compatible con SDK 57 para el ingreso SSP, o abrir en Chrome la dirección LAN que muestra el comando. Google nativo requiere OAuth y una compilación de desarrollo. Ver [acceso Google y revisión Android](docs/ACCESO-GOOGLE-Y-ANDROID.md). La verificación física en dispositivos sigue pendiente.
+Para Android en la misma Wi-Fi, iniciar el backend con `scripts\iniciar-pruebas.ps1 -Lan` y la app con `npm run movil:pruebas`. Usar Expo Go compatible con SDK 57 para el ingreso SSP, o abrir en Chrome la dirección LAN que muestra el comando. Google nativo requiere OAuth y una compilación de desarrollo. Ver [acceso Google y revisión Android](docs/ACCESO-GOOGLE-Y-ANDROID.md). El APK de presentación ya se instaló y permitió ingresar; la revisión integral del recorrido y de los cambios posteriores en Android sigue pendiente.
 
 ## Configuración de API
 
@@ -35,6 +35,10 @@ npm run export:web
 En cada incremento, ejecutar solo las comprobaciones necesarias para el cambio. `npm run test:navigation` comprueba acceso y demo; `npm run test:aulas`, aulas y tareas; `npm run test:centro`, el registro de centro/supervisor; `npm run test:avisos`, la bandeja; `npm run test:docencia`, revisión y calificación docente; `npm run test:asistencia`, el guardado de asistencia académica; `npm run test:horas`, la bitácora y revisión; `npm run test:tareas`, publicación y entrega escrita; `npm run test:auditoria`, consulta administrativa y filtros. Requieren Expo web abierto y Playwright/Chromium disponibles. Si `playwright-core` está fuera del proyecto, configurar `PLAYWRIGHT_CORE_PATH` con su ruta. El origen predeterminado es `http://localhost:5173`; `SSP_WEB_URL` permite cambiarlo. Estas pruebas usan respuestas simuladas; no certifican la integración real con el backend.
 
 ## Estado actual
+
+Consultar el [estado funcional vigente y orden para completar el piloto](docs/ESTADO-FUNCIONAL.md). La entrega del 23 de octubre está fijada; los incrementos posteriores continúan en una rama separada, sin actualizar automáticamente sus enlaces.
+
+El recorrido renovado del alumno incluye mensajes, comunidad, documentos, borradores y guía. Mensajes/foros/documentos consultan páginas de 20; los anuncios abren su contenido al solicitar el detalle. Los borradores de comunicación y sus reintentos confirmados se conservan por cuenta y dispositivo. Ver [incremento 26](docs/INCREMENTO-26.md).
 
 Administración puede consultar los 200 registros recientes de auditoría, filtrar responsables/aulas y revisar cambios de asistencia por estudiante.
 

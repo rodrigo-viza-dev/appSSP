@@ -12,6 +12,7 @@ import type { Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
+import { StudentCommunity } from '@/features/alumno/communication';
 
 function CommunityScreenContent() {
   const router = useAppRouter(), params = useLocalSearchParams<{ aulaId?: string; seccion?: string }>();
@@ -69,4 +70,4 @@ function CommunityScreenContent() {
   </View>;
 }
 
-export default function CommunityScreen(){return <StudentLegacyRoute route="/comunidad"><CommunityScreenContent /></StudentLegacyRoute>;}
+export default function CommunityScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/comunidad">{session?.user.role==='ALUMNO'?<StudentCommunity />:<CommunityScreenContent />}</StudentLegacyRoute>;}

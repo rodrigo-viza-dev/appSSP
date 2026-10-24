@@ -10,6 +10,7 @@ import { getAulasMensajes, getContactos } from '@/services/mensajes';
 import type { Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
+import { StudentMessages } from '@/features/alumno/communication';
 
 function MessagesScreenContent() {
   const router = useAppRouter(), { session } = useAuth(), params = useLocalSearchParams<{ aulaId?: string }>();
@@ -41,4 +42,4 @@ function MessagesScreenContent() {
   </View>;
 }
 
-export default function MessagesScreen(){return <StudentLegacyRoute route="/mensajes"><MessagesScreenContent /></StudentLegacyRoute>;}
+export default function MessagesScreen(){const {session}=useAuth();return <StudentLegacyRoute route="/mensajes">{session?.user.role==='ALUMNO'?<StudentMessages />:<MessagesScreenContent />}</StudentLegacyRoute>;}

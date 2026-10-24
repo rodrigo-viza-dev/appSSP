@@ -15,6 +15,7 @@ import { StudentPage, StudentGroup, StudentRow, studentStyles as s } from './com
 import { StudentAccount } from './screens';
 import { StudentNoticeDetail } from './notices';
 import { StudentDelivery } from './classroom';
+import { StudentAnnouncement } from './communication';
 import Aula from '@/app/aula';
 import Tarea from '@/app/tarea';
 import Centro from '@/app/centro';
@@ -46,7 +47,7 @@ function RegisterActivity(){
  const [busy,setBusy]=useState(false),[saved,setSaved]=useState(false);
  return <StudentPage title={rid?'Corregir actividad':'Registrar actividad'} back={()=>router.canGoBack()?router.back():router.replace('/mis-horas')} keyboard><QueryFeedback {...q} notFound="La práctica no está disponible." />{saved?<><Text accessibilityRole="header" style={s.title}>Tu actividad fue recibida</Text><Text style={s.muted}>Las horas quedaron pendientes de revisión del supervisor.</Text><Button title="Ver mi bitácora" onPress={()=>router.replace({pathname:'/mis-horas',params:{practicaId:id}})} /></>:practice&&(!rid||record)&&!q.loading?<><Text style={s.rowTitle}>{practice.aulaNombre}</Text>{practice.estado==='CERRADA'?<Text style={s.muted}>Esta práctica está cerrada y se conserva para consulta.</Text>:<><RegisterHoursForm practica={practice} registro={record} onBusy={setBusy} refresh={()=>q.retry()} onSaved={()=>{setSaved(true);student.refresh();}} /><Button title="Guardar borrador y volver" secondary disabled={busy} onPress={()=>router.canGoBack()?router.back():router.replace('/borradores')} /><Text style={s.muted}>La actividad se guarda en este dispositivo al editar. Enviarla requiere tu confirmación.</Text></>}</>:!id&&!q.loading?<Text style={s.muted}>Necesitas una práctica asignada para registrar actividades.</Text>:null}</StudentPage>;
 }
-const views:Record<string,()=>React.JSX.Element|null>={entrega:StudentDelivery,aviso:StudentNoticeDetail,aula:Aula,tarea:Tarea,centro:Centro,borradores:Borradores,expedientes:Expedientes,expediente:Expediente,metas:Metas,comunidad:Comunidad,foro:Foro,documentos:Documentos,mensajes:Mensajes,conversacion:Conversacion,guia:Guia,cuenta:StudentAccount,actividad:Activity,registrar:RegisterActivity};
+const views:Record<string,()=>React.JSX.Element|null>={anuncio:StudentAnnouncement,entrega:StudentDelivery,aviso:StudentNoticeDetail,aula:Aula,tarea:Tarea,centro:Centro,borradores:Borradores,expedientes:Expedientes,expediente:Expediente,metas:Metas,comunidad:Comunidad,foro:Foro,documentos:Documentos,mensajes:Mensajes,conversacion:Conversacion,guia:Guia,cuenta:StudentAccount,actividad:Activity,registrar:RegisterActivity};
 export default function StudentDetail(){const {vista}=useLocalSearchParams<{vista?:string}>(),router=useAppRouter();const View=typeof vista==='string'?views[vista]:null;return View?<View/>:<StudentPage title="Sección no disponible"><Button title="Volver a Inicio" onPress={()=>router.replace('/panel')} /></StudentPage>;}
 
 export function generateStaticParams(){return Object.keys(views).map(vista=>({vista}));}

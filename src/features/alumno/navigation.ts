@@ -2,7 +2,7 @@ import { createElement, type PropsWithChildren } from 'react';
 import { Redirect, useLocalSearchParams, usePathname, useRouter, type Href } from 'expo-router';
 import { useAuth } from '@/state/auth';
 const main: Record<string,string>={'/panel':'inicio','/mis-horas':'bitacora','/mis-avisos':'avisos'};
-const detail=new Set(['aula','tarea','entrega','centro','borradores','expedientes','expediente','metas','comunidad','foro','documentos','mensajes','conversacion','guia','actividad','registrar','cuenta','aviso']);
+const detail=new Set(['aula','tarea','entrega','centro','borradores','expedientes','expediente','metas','comunidad','foro','anuncio','documentos','mensajes','conversacion','guia','actividad','registrar','cuenta','aviso']);
 export function useAppRouter(){
  const router=useRouter(),pathname=usePathname(),{session}=useAuth();
  const student=session?.user.role==='ALUMNO';
