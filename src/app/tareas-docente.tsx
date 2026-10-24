@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Screen } from '@/components/screen';
 import { Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -12,7 +13,8 @@ import type { Session } from '@/services/api';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 import { EditTask } from '@/features/tareas/edit-task';
-export default function TeacherTasksScreen() {
+export default function TeacherTasksScreen() { return <StudentLegacyRoute route="/tareas-docente"><TeacherTasksScreenContent /></StudentLegacyRoute>; }
+function TeacherTasksScreenContent() {
   const params = useLocalSearchParams<{ aulaId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
   const router = useRouter();

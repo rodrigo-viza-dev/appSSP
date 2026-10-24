@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Pressable, Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -12,7 +13,8 @@ import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 import { useAuth } from '@/state/auth';
 
-export default function AulaDocenteScreen() {
+export default function AulaDocenteScreen() { return <StudentLegacyRoute route="/aula-docente"><AulaDocenteScreenContent /></StudentLegacyRoute>; }
+function AulaDocenteScreenContent() {
   const { session } = useAuth();
   const params = useLocalSearchParams<{ id?: string }>();
   const id = typeof params.id === 'string' ? params.id : '';

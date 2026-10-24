@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -8,7 +8,8 @@ import { useDocenteQuery } from '@/features/shared/use-docente-query';
 import { getAulasDocente } from '@/services/docencia';
 import { colors } from '@/theme';
 
-export default function DocenciaScreen() {
+export default function DocenciaScreen() { return <StudentLegacyRoute route="/docencia"><DocenciaScreenContent /></StudentLegacyRoute>; }
+function DocenciaScreenContent() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const load = useCallback(getAulasDocente, []);

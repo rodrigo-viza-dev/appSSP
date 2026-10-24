@@ -25,7 +25,7 @@ function HoursScreenContent() {
   const [editing, setEditing] = useState('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
-  const practica = practices.data?.find(v => v.id === selected) ?? practices.data?.[0];
+  const practica = selected ? practices.data?.find(v => v.id === selected) : practices.data?.[0];
   const id = practica?.id ?? '';
   const hours = useSessionQuery(`horas:${id}`, useCallback((s: Session, signal: AbortSignal) => getHoras(s, id, signal), [id]), !!practica);
   const refresh = () => { setNotice(''); hours.retry(); practices.retry(); };
@@ -36,7 +36,8 @@ function HoursScreenContent() {
     <Screen>
       <QueryFeedback {...practices} notFound="Este servidor todavía no tiene disponible el circuito de horas actualizado." />
       {practices.data?.length === 0 && <Text style={typography.body}>{supervisor ? 'No tienes prácticas vinculadas a tu cuenta de supervisor.' : 'Todavía no tienes una práctica asignada.'}</Text>}
-      {(practices.data?.length ?? 0) > 1 && practices.data!.map(p => <Button key={p.id} title={`Ver práctica: ${p.practicanteNombre} · ${p.aulaNombre}`} secondary={p.id !== id} disabled={busy} onPress={() => { setSelected(p.id); setEditing(''); setNotice(''); }} />)}
+      {!!selected && practices.data && !practica && <Text accessibilityRole="alert" style={typography.error}>La práctica seleccionada no está disponible para tu cuenta. Elige una de tus prácticas para continuar.</Text>}
+      {practices.data && (practices.data.length > 1 || !!selected && !practica) && practices.data.map(p => <Button key={p.id} title={`Ver práctica: ${p.practicanteNombre} · ${p.aulaNombre}`} secondary={p.id !== id} disabled={busy} onPress={() => { setSelected(p.id); setEditing(''); setNotice(''); }} />)}
       {practica && <>
         <Card><Text style={typography.title}>{practica.aulaNombre}</Text><Text style={typography.body}>{practica.practicanteNombre} · {practica.periodo}</Text><Badge title={practica.estado.replaceAll('_', ' ')} tone="neutral" /></Card>
         <Button title={supervisor ? 'Evaluar practicante y consultar expediente' : 'Consultar requisitos y expediente'} secondary disabled={busy} onPress={() => router.push({ pathname: '/expediente', params: { practicaId: id } })} />

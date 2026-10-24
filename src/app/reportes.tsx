@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -9,7 +9,8 @@ import { getReporte } from '@/services/administracion';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function ReportsScreen() {
+export default function ReportsScreen() { return <StudentLegacyRoute route="/reportes"><ReportsScreenContent /></StudentLegacyRoute>; }
+function ReportsScreenContent() {
   const router = useRouter(), { session } = useAuth();
   const query = useSessionQuery('reporte-institucional', useCallback(getReporte, []), session?.user.role === 'ADMIN');
   const [search, setSearch] = useState(''), [activeOnly, setActiveOnly] = useState(false);

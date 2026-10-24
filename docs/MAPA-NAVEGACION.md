@@ -60,6 +60,8 @@ El [incremento 26](INCREMENTO-26.md) adapta Mensajes/Conversación, Comunidad/Fo
 
 Son agrupaciones de presentación. Las pantallas que necesitan aula, alumno o práctica deben ofrecer primero esa selección; no se presupone un endpoint global nuevo. Los datos y las acciones siguen limitados por los permisos del servidor. La mensajería privada corresponde a alumno/docente; el supervisor no autoriza el cierre.
 
+El [incremento 27](INCREMENTO-27.md) integra las cinco pestañas para docente, supervisor y administración bajo `/equipo`, con nombres según el rol y pilas de detalle independientes. Conserva enlaces anteriores y parámetros, búsqueda del personal y vistas autorizadas. Los formularios y consultas completas previas se reutilizan; falta paginar y adaptar en detalle sus listas con volumen.
+
 ## Prioridad y búsquedas por rol
 
 La aplicación contempla los cuatro roles, con interfaces según sus responsabilidades. Primero se completa e integra el recorrido del alumno; después se adapta la experiencia docente y se extiende el diseño a supervisor y administración. La prioridad de diseño no elimina sus funciones existentes.

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -11,7 +12,8 @@ import { ApiError, type Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function AdminClassScreen() {
+export default function AdminClassScreen() { return <StudentLegacyRoute route="/administrar-aula"><AdminClassScreenContent /></StudentLegacyRoute>; }
+function AdminClassScreenContent() {
   const router = useRouter(), params = useLocalSearchParams<{ aulaId?: string }>(), { session } = useAuth();
   const id = typeof params.aulaId === 'string' ? params.aulaId : '';
   const query = useSessionQuery(`admin-aula:${id}`, useCallback((s: Session, signal: AbortSignal) => getAdminAula(s, id, signal), [id]), session?.user.role === 'ADMIN' && !!id);

@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -10,7 +11,8 @@ import type { Session } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function StudentFollowupScreen() {
+export default function StudentFollowupScreen() { return <StudentLegacyRoute route="/seguimiento"><StudentFollowupScreenContent /></StudentLegacyRoute>; }
+function StudentFollowupScreenContent() {
   const router = useRouter(), { session } = useAuth(), params = useLocalSearchParams<{ aulaId?: string; alumnoId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '', alumnoId = typeof params.alumnoId === 'string' ? params.alumnoId : '';
   const query = useSessionQuery(`seguimiento:${aulaId}:${alumnoId}`, useCallback((s: Session, signal: AbortSignal) => getSeguimiento(s, aulaId, alumnoId, signal), [aulaId, alumnoId]), !!aulaId && !!alumnoId && (session?.user.role === 'PROFESOR' || session?.user.role === 'ADMIN'));

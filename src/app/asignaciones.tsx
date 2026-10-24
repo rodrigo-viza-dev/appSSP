@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Screen } from '@/components/screen';
 import { Button, Card, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -10,7 +10,8 @@ import { getAsignaciones, guardarAsignacion } from '@/services/asignaciones';
 import { ApiError, request } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
-export default function AsignacionesScreen() {
+export default function AsignacionesScreen() { return <StudentLegacyRoute route="/asignaciones"><AsignacionesScreenContent /></StudentLegacyRoute>; }
+function AsignacionesScreenContent() {
   const router = useRouter(), { session } = useAuth();
   const query = useSessionQuery('asignaciones', useCallback(getAsignaciones, []), session?.user.role === 'ADMIN');
   const [mode, setMode] = useState(''), [busy, setBusy] = useState(false), [notice, setNotice] = useState('');

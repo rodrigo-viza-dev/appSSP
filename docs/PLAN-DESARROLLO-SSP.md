@@ -4,7 +4,7 @@ Fecha: 15 de octubre de 2026. Alcance: aplicación móvil Expo y cambios necesar
 
 > Actualización de fuente: el usuario confirmó que el backend usado para despliegue es `BastleyNait/BACK-CS-DE-LA-COM`. Ver [revisión del backend desplegado](REVISION-BACKEND-DESPLEGADO.md), que prevalece sobre las observaciones del repositorio anterior en este documento. Se comprobó `https://back-cs-de-la-com.vercel.app` y su OpenAPI. En este despliegue faltan `/auth/me` y las operaciones de validación/evaluación del supervisor; las filas que las mencionan más abajo son objetivos pendientes de backend, no capacidades publicadas. El preflight desde la vista previa Expo es rechazado y los archivos usan almacenamiento temporal en Vercel.
 
-> Estado vigente: [revisión funcional hasta el incremento 26](ESTADO-FUNCIONAL.md). Las secciones de diagnóstico de este plan reflejan el estado original; no deben interpretarse como fallos pendientes del código actual. La presentación del 23 de octubre y el desarrollo posterior están separados.
+> Estado vigente: [revisión funcional hasta el incremento 27](ESTADO-FUNCIONAL.md). Las secciones de diagnóstico de este plan reflejan el estado original; no deben interpretarse como fallos pendientes del código actual. La presentación del 23 de octubre y el desarrollo posterior están separados.
 
 ## 1. Resultado esperado
 

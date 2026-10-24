@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -11,7 +12,8 @@ import { getAulaDocente } from '@/services/docencia';
 import { getAsistencia, todayLima, validAttendanceDate } from '@/services/asistencia';
 import { colors } from '@/theme';
 
-export default function AsistenciaDocenteScreen() {
+export default function AsistenciaDocenteScreen() { return <StudentLegacyRoute route="/asistencia-docente"><AsistenciaDocenteScreenContent /></StudentLegacyRoute>; }
+function AsistenciaDocenteScreenContent() {
   const params = useLocalSearchParams<{ aulaId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
   const router = useRouter();

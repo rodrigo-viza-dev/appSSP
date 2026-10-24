@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -11,7 +11,8 @@ import { ApiError } from '@/services/api';
 import { useAuth } from '@/state/auth';
 import { colors } from '@/theme';
 
-export default function AdminScreen() {
+export default function AdminScreen() { return <StudentLegacyRoute route="/administracion"><AdminScreenContent /></StudentLegacyRoute>; }
+function AdminScreenContent() {
   const router = useRouter(), { session } = useAuth();
   const query = useSessionQuery('administracion', useCallback(getAdminData, []), session?.user.role === 'ADMIN');
   const [tab, setTab] = useState<'aulas' | 'usuarios'>('aulas'), [search, setSearch] = useState(''), [filter, setFilter] = useState('TODOS');

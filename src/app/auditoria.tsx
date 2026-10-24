@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Badge, Button, Card, Field, Header, typography } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Screen } from '@/components/screen';
@@ -9,7 +9,8 @@ import { useAuth } from '@/state/auth';
 import { attendanceAudit, auditAction, getAuditData } from '@/services/auditoria';
 import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
-export default function AuditScreen() {
+export default function AuditScreen() { return <StudentLegacyRoute route="/auditoria"><AuditScreenContent /></StudentLegacyRoute>; }
+function AuditScreenContent() {
   const { session } = useAuth();
   const router = useRouter();
   const query = useSessionQuery('admin-audit', useCallback(getAuditData, []), session?.user.role === 'ADMIN');

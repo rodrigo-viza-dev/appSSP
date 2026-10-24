@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -14,7 +15,8 @@ import { colors } from '@/theme';
 import { Attachment } from '@/components/attachment';
 import { DeliveryHistory } from '@/features/tareas/delivery-history';
 
-export default function RevisarEntregaScreen() {
+export default function RevisarEntregaScreen() { return <StudentLegacyRoute route="/revisar-entrega"><RevisarEntregaScreenContent /></StudentLegacyRoute>; }
+function RevisarEntregaScreenContent() {
   const params = useLocalSearchParams<{ aulaId?: string; entregaId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
   const entregaId = typeof params.entregaId === 'string' ? params.entregaId : '';

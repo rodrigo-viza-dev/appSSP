@@ -38,6 +38,8 @@ En cada incremento, ejecutar solo las comprobaciones necesarias para el cambio. 
 
 Consultar el [estado funcional vigente y orden para completar el piloto](docs/ESTADO-FUNCIONAL.md). La entrega del 23 de octubre está fijada; los incrementos posteriores continúan en una rama separada, sin actualizar automáticamente sus enlaces.
 
+Los cuatro roles cuentan con cinco pestañas y pilas independientes. Docente: Aulas/Seguimiento; supervisor: Practicantes/Horas; administración: Gestión/Reportes; todos conservan Inicio/Avisos/Más. Se mantienen permisos, parámetros de enlaces y búsquedas de gestión. Ver [incremento 27](docs/INCREMENTO-27.md).
+
 El recorrido renovado del alumno incluye mensajes, comunidad, documentos, borradores y guía. Mensajes/foros/documentos consultan páginas de 20; los anuncios abren su contenido al solicitar el detalle. Los borradores de comunicación y sus reintentos confirmados se conservan por cuenta y dispositivo. Ver [incremento 26](docs/INCREMENTO-26.md).
 
 Administración puede consultar los 200 registros recientes de auditoría, filtrar responsables/aulas y revisar cambios de asistencia por estudiante.
