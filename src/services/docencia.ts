@@ -1,4 +1,5 @@
 import { ApiError, request, type Session } from './api';
+import { parseClassroom } from './staff-pages';
 
 export type AulaDocente = { id: string; nombre: string; codigo: string; descripcion: string; periodo: string; profesorId: string; profesorNombre: string; estado: 'ACTIVA' | 'CONCLUIDA'; inscritos: number };
 export type PracticanteDocente = { alumnoId: string; alumnoNombre: string; alumnoEmail: string; aulaId: string; aulaNombre: string; progreso: number; semanaActual: number; semanasTotales: number; estado: string; tareasEntregadas: number; tareasTotal: number };
@@ -28,10 +29,11 @@ export async function getAulasDocente(session: Session, signal: AbortSignal): Pr
   return data as AulaDocente[];
 }
 export async function getAulaDocente(session: Session, aulaId: string, signal: AbortSignal) {
-  idPath(aulaId);
-  const aula = (await getAulasDocente(session, signal)).find(v => v.id === aulaId);
-  if (!aula) throw new ApiError(404, 'El aula no está disponible para tu cuenta.');
-  return aula;
+  docente(session);
+  const raw = await request<unknown>(`/equipo/aulas/${idPath(aulaId)}`, session.token, undefined, signal);
+  const aula = parseClassroom(raw, session);
+  if (aula.id !== aulaId || !object(raw) || !text(raw.descripcion)) invalid();
+  return { ...aula, descripcion: raw.descripcion };
 }
 export async function getPracticantesDocente(session: Session, signal: AbortSignal): Promise<PracticanteDocente[]> {
   docente(session);
@@ -46,9 +48,9 @@ export async function getEntregasDocente(session: Session, aulaId: string, signa
   return data;
 }
 export async function getEntregaDocente(session: Session, aulaId: string, entregaId: string, signal: AbortSignal) {
-  idPath(entregaId);
-  const entrega = (await getEntregasDocente(session, aulaId, signal)).find(v => v.id === entregaId);
-  if (!entrega) throw new ApiError(404, 'La entrega ya no está disponible en esta aula.');
+  docente(session);
+  const entrega = await request<unknown>(`/equipo/aulas/${idPath(aulaId)}/entregas/${idPath(entregaId)}`, session.token, undefined, signal);
+  if (!isEntrega(entrega) || entrega.id !== entregaId || !count(entrega.revision)) invalid();
   return entrega;
 }
 export async function getLibroDocente(session: Session, aulaId: string, signal: AbortSignal): Promise<LibroDocente> {

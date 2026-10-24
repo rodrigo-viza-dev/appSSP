@@ -4,7 +4,7 @@ import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
-import { Badge, Card, Header, Label, typography } from '@/components/ui';
+import { Badge, Button, Card, Header, Label, typography } from '@/components/ui';
 import { useDocenteQuery } from '@/features/shared/use-docente-query';
 import { GradeForm } from '@/features/docencia/grade-form';
 import { deliveryLabel } from '@/features/aulas/presentation';
@@ -14,14 +14,15 @@ import { academicDate } from '@/utils/date';
 import { colors } from '@/theme';
 import { Attachment } from '@/components/attachment';
 import { DeliveryHistory } from '@/features/tareas/delivery-history';
+import { useStaffData } from '@/features/equipo/data-state';
 
 export default function RevisarEntregaScreen() { return <StudentLegacyRoute route="/revisar-entrega"><RevisarEntregaScreenContent /></StudentLegacyRoute>; }
 function RevisarEntregaScreenContent() {
   const params = useLocalSearchParams<{ aulaId?: string; entregaId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
   const entregaId = typeof params.entregaId === 'string' ? params.entregaId : '';
-  const router = useRouter();
-  const [notice, setNotice] = useState('');
+  const router = useRouter(), staff = useStaffData();
+  const [notice, setNotice] = useState(''), [history, setHistory] = useState(false);
   const query = useDocenteQuery(`revisar:${aulaId}:${entregaId}`, useCallback((s: Session, signal: AbortSignal) => getEntregaDocente(s, aulaId, entregaId, signal), [aulaId, entregaId]), !!aulaId.trim() && !!entregaId.trim());
   const entrega = query.data;
   return <View style={{ flex: 1, backgroundColor: colors.white }}>
@@ -40,8 +41,8 @@ function RevisarEntregaScreenContent() {
           <Text style={typography.body}>Nota actual: {entrega.nota ?? 'Sin calificar'}</Text>
           {!!entrega.retroalimentacion && <Text style={typography.body}>Observaciones actuales: {entrega.retroalimentacion}</Text>}
         </Card>
-        <DeliveryHistory aulaId={aulaId} taskId={entrega.tareaId} alumnoId={entrega.alumnoId} revision={entrega.revision} />
-        <GradeForm key={`${entrega.id}:${entrega.revision}:${entrega.nota}:${entrega.retroalimentacion}`} entrega={entrega} onReview={() => setNotice('')} onSaved={value => { query.setData(value); setNotice('Calificación guardada y confirmada por el servidor.'); }} refresh={() => { setNotice(''); query.retry(); }} />
+        {history ? <><DeliveryHistory aulaId={aulaId} taskId={entrega.tareaId} alumnoId={entrega.alumnoId} revision={entrega.revision} showSingle /><Button title="Ocultar historial de entrega" secondary onPress={() => setHistory(false)} /></> : <Button title="Ver historial de esta entrega" secondary onPress={() => setHistory(true)} />}
+        <GradeForm key={`${entrega.id}:${entrega.revision}:${entrega.nota}:${entrega.retroalimentacion}`} entrega={entrega} onReview={() => setNotice('')} onSaved={value => { query.setData(value); staff.touch('aula:' + aulaId); setNotice('Calificación guardada y confirmada por el servidor.'); }} refresh={() => { setNotice(''); staff.touch('aula:' + aulaId); query.retry(); }} />
       </>}
     </Screen>
   </View>;

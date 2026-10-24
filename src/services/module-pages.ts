@@ -8,7 +8,7 @@ export type AnuncioResumen = Omit<Anuncio, 'mensaje'> & { resumen: string };
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === 'string';
 function invalid(): never { throw new ApiError(502, 'La página recibida no es compatible. Actualiza la consulta.'); }
-function page<T extends { id: string }>(v: unknown, parse: (row: unknown) => T): Page<T> {
+export function page<T extends { id: string }>(v: unknown, parse: (row: unknown) => T): Page<T> {
   if (!object(v) || !Array.isArray(v.items) || v.items.length > 40 || !Number.isSafeInteger(v.total) || Number(v.total) < v.items.length || !(v.siguiente === null || text(v.siguiente) && v.siguiente.length > 0 && v.siguiente.length <= 2048)) invalid();
   const items = v.items.map(parse);
   if (new Set(items.map(row => row.id)).size !== items.length || v.siguiente && !items.length) invalid();

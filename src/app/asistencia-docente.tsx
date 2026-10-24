@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { StudentLegacyRoute, useAppRouter as useRouter } from '@/features/alumno/navigation';
+import { useStaffData } from '@/features/equipo/data-state';
 import { Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
@@ -16,7 +17,7 @@ export default function AsistenciaDocenteScreen() { return <StudentLegacyRoute r
 function AsistenciaDocenteScreenContent() {
   const params = useLocalSearchParams<{ aulaId?: string }>();
   const aulaId = typeof params.aulaId === 'string' ? params.aulaId : '';
-  const router = useRouter();
+  const router = useRouter(), staff = useStaffData();
   const [fecha, setFecha] = useState(todayLima);
   const [draftFecha, setDraftFecha] = useState(fecha);
   const [dateError, setDateError] = useState('');
@@ -24,7 +25,7 @@ function AsistenciaDocenteScreenContent() {
   const [saving, setSaving] = useState(false);
   const aula = useDocenteQuery(`asistencia-aula:${aulaId}`, useCallback((s: Session, signal: AbortSignal) => getAulaDocente(s, aulaId, signal), [aulaId]), !!aulaId.trim());
   const query = useDocenteQuery(`asistencia:${aulaId}:${fecha}`, useCallback((s: Session, signal: AbortSignal) => getAsistencia(s, aulaId, fecha, signal), [aulaId, fecha]), !!aula.data);
-  const refresh = () => { setNotice(''); query.retry(); };
+  const refresh = () => { staff.touch('aula:' + aulaId); setNotice(''); query.retry(); };
   function consult() {
     if (saving) return;
     if (!validAttendanceDate(draftFecha)) { setDateError('Escribe una fecha válida con formato AAAA-MM-DD.'); return; }
@@ -50,7 +51,7 @@ function AsistenciaDocenteScreenContent() {
         {!!notice && <Text accessibilityLiveRegion="polite" style={typography.body}>{notice}</Text>}
         <QueryFeedback {...query} notFound="La lista de asistencia no está disponible." />
         {draftFecha !== fecha && <Text style={typography.body}>Consulta la nueva fecha antes de revisar su lista.</Text>}
-        {query.data && draftFecha === fecha && (query.data.versionAsistencia === 1 && fecha <= todayLima() && aula.data.estado === 'ACTIVA' ? <AttendanceForm key={`${aulaId}:${fecha}:${query.data.revision}`} data={query.data} onBusy={setSaving} onReview={() => setNotice('')} refresh={refresh} onSaved={saved => { query.setData(saved); setNotice(`Asistencia del ${saved.fecha} guardada y confirmada por el servidor.`); }} /> : query.data.items.map(item => <Card key={item.practicanteId}><Text style={typography.title}>{item.practicanteNombre}</Text><Text style={typography.body}>{item.presente ? 'Presente' : 'Ausente'}</Text></Card>))}
+        {query.data && draftFecha === fecha && (query.data.versionAsistencia === 1 && fecha <= todayLima() && aula.data.estado === 'ACTIVA' ? <AttendanceForm key={`${aulaId}:${fecha}:${query.data.revision}`} data={query.data} onBusy={setSaving} onReview={() => setNotice('')} refresh={refresh} onSaved={saved => { query.setData(saved); staff.touch('aula:' + aulaId); setNotice(`Asistencia del ${saved.fecha} guardada y confirmada por el servidor.`); }} /> : query.data.items.map(item => <Card key={item.practicanteId}><Text style={typography.title}>{item.practicanteNombre}</Text><Text style={typography.body}>{item.presente ? 'Presente' : 'Ausente'}</Text></Card>))}
       </>}
     </Screen>
   </View>;

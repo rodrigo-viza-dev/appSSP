@@ -1,6 +1,6 @@
 # PrácticasCC · Propuesta de navegación y trabajo en Figma
 
-Estado: dirección visual y orden general aceptados por el usuario. El [incremento 21](INCREMENTO-21.md) integra las cinco pestañas y sus detalles en la sesión real de alumno, conservando los módulos y permisos existentes. La adaptación de los otros roles continúa después de la revisión del alumno en Android.
+Estado: dirección visual y orden general aceptados por el usuario. Las cinco pestañas del alumno se integraron en el [incremento 21](INCREMENTO-21.md), las del personal en el [27](INCREMENTO-27.md). El [28](INCREMENTO-28.md) adapta aulas, padrón, entregas, notas y seguimiento con páginas y búsquedas docentes. La revisión física completa en Android continúa pendiente.
 
 ## Mapa del alumno para FigJam
 
@@ -60,7 +60,7 @@ El [incremento 26](INCREMENTO-26.md) adapta Mensajes/Conversación, Comunidad/Fo
 
 Son agrupaciones de presentación. Las pantallas que necesitan aula, alumno o práctica deben ofrecer primero esa selección; no se presupone un endpoint global nuevo. Los datos y las acciones siguen limitados por los permisos del servidor. La mensajería privada corresponde a alumno/docente; el supervisor no autoriza el cierre.
 
-El [incremento 27](INCREMENTO-27.md) integra las cinco pestañas para docente, supervisor y administración bajo `/equipo`, con nombres según el rol y pilas de detalle independientes. Conserva enlaces anteriores y parámetros, búsqueda del personal y vistas autorizadas. Los formularios y consultas completas previas se reutilizan; falta paginar y adaptar en detalle sus listas con volumen.
+El [incremento 27](INCREMENTO-27.md) integra las cinco pestañas para docente, supervisor y administración bajo `/equipo`, con nombres según el rol y pilas de detalle independientes. Conserva enlaces anteriores y parámetros, búsqueda del personal y vistas autorizadas. El [incremento 28](INCREMENTO-28.md) separa el aula docente en Entregas, Alumnos, Notas y Recursos: las listas se consultan por páginas y la ficha/revisión abre el recurso exacto. Recursos reúne tareas, asistencia, mensajes, comunidad, documentos y metas. Seguimiento docente y Practicantes del supervisor también usan páginas y filtros de abiertas/cerradas; solo el docente conserva búsqueda de texto en este recorrido.
 
 ## Prioridad y búsquedas por rol
 

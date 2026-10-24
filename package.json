@@ -24,6 +24,7 @@
     "test:communication:unit": "node --test tests/communication-drafts.test.cjs",
     "test:role-navigation:unit": "node --test tests/navigation-map.test.cjs",
     "test:roles": "node tests/browser-roles.cjs",
+    "test:personal": "node tests/browser-personal.cjs",
     "test:centro": "node tests/browser-centro.cjs",
     "test:avisos": "node tests/browser-avisos.cjs",
     "test:docencia": "node tests/browser-docencia.cjs",

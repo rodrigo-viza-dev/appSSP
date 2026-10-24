@@ -40,6 +40,8 @@ Consultar el [estado funcional vigente y orden para completar el piloto](docs/ES
 
 Los cuatro roles cuentan con cinco pestañas y pilas independientes. Docente: Aulas/Seguimiento; supervisor: Practicantes/Horas; administración: Gestión/Reportes; todos conservan Inicio/Avisos/Más. Se mantienen permisos, parámetros de enlaces y búsquedas de gestión. Ver [incremento 27](docs/INCREMENTO-27.md).
 
+El [incremento 28](docs/INCREMENTO-28.md) añade páginas de 20 a Mis aulas, padrón, entregas, resumen de notas y listas principales de seguimiento/practicantes. El aula docente separa Entregas, Alumnos, Notas y Recursos, con búsquedas en servidor y apertura individual de aula/entrega. `npm run test:personal` verifica este recorrido actualizado con lecturas locales reales y respuestas aisladas para volumen/calificación; requiere las cuentas ficticias de `ssp_test`, Playwright y servidores locales indicados por `SSP_API_URL`/`SSP_WEB_URL` (8001/5174 por defecto). No realiza escrituras académicas reales.
+
 El recorrido renovado del alumno incluye mensajes, comunidad, documentos, borradores y guía. Mensajes/foros/documentos consultan páginas de 20; los anuncios abren su contenido al solicitar el detalle. Los borradores de comunicación y sus reintentos confirmados se conservan por cuenta y dispositivo. Ver [incremento 26](docs/INCREMENTO-26.md).
 
 Administración puede consultar los 200 registros recientes de auditoría, filtrar responsables/aulas y revisar cambios de asistencia por estudiante.
