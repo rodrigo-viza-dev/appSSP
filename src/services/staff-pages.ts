@@ -53,12 +53,22 @@ export async function getGradePage(s: Session, id: string, q: string, signal: Ab
   if (!object(raw) || !grade(raw.promedioGeneral)) invalid();
   return { ...result, promedioGeneral: raw.promedioGeneral as number | null };
 }
+function parsePractice(v: unknown, estado: string) {
+  if (!object(v) || !['id', 'practicanteId', 'practicanteNombre', 'aulaId', 'aulaNombre', 'periodo'].every(k => text(v[k])) || !v.id
+    || !['EN_CURSO', 'LISTA_PARA_CIERRE', 'CERRADA'].includes(String(v.estado)) || !count(v.horasAcumuladas) || !count(v.horasMinimas)
+    || estado === 'ABIERTAS' && v.estado === 'CERRADA' || estado === 'CERRADAS' && v.estado !== 'CERRADA') invalid();
+  return v as PracticaExpediente;
+}
 export async function getPracticePage(s: Session, estado: string, q: string, signal: AbortSignal, cursor?: string | null) {
   personal(s, true);
-  return page(await request(`/equipo/practicas/pagina?${query(cursor, q, { estado })}`, s.token, undefined, signal), v => {
-    if (!object(v) || !['id', 'practicanteId', 'practicanteNombre', 'aulaId', 'aulaNombre', 'periodo'].every(k => text(v[k])) || !v.id || !['EN_CURSO', 'LISTA_PARA_CIERRE', 'CERRADA'].includes(String(v.estado)) || !count(v.horasAcumuladas) || !count(v.horasMinimas) || estado === 'ABIERTAS' && v.estado === 'CERRADA' || estado === 'CERRADAS' && v.estado !== 'CERRADA') invalid();
-    return v as PracticaExpediente;
-  });
+  return page(await request(`/equipo/practicas/pagina?${query(cursor, q, { estado })}`, s.token, undefined, signal), v => parsePractice(v, estado));
+}
+export async function getPracticeDetail(s: Session, id: string, signal: AbortSignal): Promise<PracticaExpediente> {
+  personal(s, true);
+  if (!id.trim()) throw new ApiError(400, 'Abre la práctica desde la lista.');
+  const practice = parsePractice(await request<unknown>(`/equipo/practicas/${encodeURIComponent(id)}`, s.token, undefined, signal), 'TODAS');
+  if (practice.id !== id) invalid();
+  return practice;
 }
 export async function getTaskPage(s: Session, id: string, q: string, signal: AbortSignal, cursor?: string | null) {
   personal(s);

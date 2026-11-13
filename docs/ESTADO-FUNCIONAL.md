@@ -1,10 +1,10 @@
 # Estado funcional · PrácticasCC
 
-Revisión del 13 de noviembre de 2026, desarrollo hasta el incremento 29. Este documento resume el código actual y distingue implementación, revisión y dependencias pendientes. El plan original conserva diagnósticos históricos que ya se resolvieron.
+Revisión del 13 de noviembre de 2026, desarrollo hasta el incremento 30. Este documento resume el código actual y distingue implementación, revisión y dependencias pendientes. El plan original conserva diagnósticos históricos que ya se resolvieron.
 
 ## Entrega y desarrollo
 
-La presentación está fijada en `avance-2026-10-23-v0.2.0`: web y APK independientes del PC, API dedicada, datos ficticios y credenciales propias. El desarrollo continúa en `desarrollo/post-presentacion-2026-10-23`, con `ssp_test`. Los incrementos 25–29 no reemplazan esa web ni ese APK.
+La presentación está fijada en `avance-2026-10-23-v0.2.0`: web y APK independientes del PC, API dedicada, datos ficticios y credenciales propias. El desarrollo continúa en `desarrollo/post-presentacion-2026-10-23`, con `ssp_test`. Los incrementos 25–30 no reemplazan esa web ni ese APK.
 
 El 13 de noviembre el pooler de Supabase rechazó la conexión a `ssp_test` (`tenant/user not found`). Las verificaciones de ese día usaron SQLite y una API simulada en el navegador; para reanudar los recorridos reales hay que restablecer el proyecto y comprobar el esquema antes de continuar.
 
@@ -17,7 +17,7 @@ El 13 de noviembre el pooler de Supabase rechazó la conexión a `ssp_test` (`te
 | Bitácora y horas | Registro, borrador, validación/rechazo, corrección, historial y paginación; solo horas validadas cuentan hacia la meta. | Revisar recorrido completo con teclado y Atrás en Android. No verifica presencia física ni jornada. |
 | Centro y supervisor | Registro con revisión previa, consulta del contacto, cuenta y vínculo gestionados por administración. | Registrar un contacto no le concede acceso; la coordinación debe vincular la cuenta. |
 | Asignaciones | Práctica vinculada a matrícula, centro propio, supervisor y meta de horas explícita; reasignación con control de vínculos. Seguimiento docente y Practicantes del supervisor consultan páginas con horas validadas y filtros de abiertas/cerradas. | Los selectores de otros módulos conservan listas completas. Revisar casos del piloto con responsables y datos institucionales autorizados. |
-| Metas | Objetivos por práctica y producción revisada por docente; las horas se calculan desde las validadas. | Las listas de metas todavía usan consultas completas. |
+| Metas | Objetivos por práctica y producción revisada por docente; las horas se calculan desde las validadas. El personal elige la práctica desde un selector paginado con búsqueda y consulta sus metas por páginas con filtros y resumen global; el enlace directo usa un detalle exacto de la práctica. | Las metas del alumno y del expediente conservan consultas completas. Revisar el recorrido con datos reales cuando se restablezca `ssp_test`. |
 | Expediente y PDF | Evaluación del supervisor, requisitos explícitos, checklist, autorización docente, copia conservada y PDF privado. Resumen ligero para alumno. | Sin reapertura, firma digital, rúbrica ni cartas institucionales. Los criterios académicos deben confirmarse. |
 | Asistencia académica | Padrón, revisión, guardado confirmado, conflictos y auditoría de cambios. | No equivale a entrada/salida en el centro. Falta padrón histórico y paginación de listas administrativas. |
 | Avisos | Bandeja por usuario, filtros y páginas, lectura explícita y destinos exactos para tareas/horas. | Sin push, entrega en segundo plano ni actualización en tiempo real. |
@@ -30,7 +30,7 @@ El 13 de noviembre el pooler de Supabase rechazó la conexión a `ssp_test` (`te
 ## Orden para completar el piloto
 
 1. **Revisión móvil real:** teclado, fuente ampliada, Atrás, adjuntos, descarga/compartir PDF y recuperación de borradores tras cerrar la app. El APK ya entregado verifica un avance anterior, no los cambios 25–28. Preparar un candidato nuevo después de estabilizar el siguiente bloque.
-2. **Interiores y listas con volumen:** cinco pestañas para los cuatro roles; alumno paginado en sus recorridos principales y personal paginado en aulas, padrón, entregas, notas, tareas docentes y listas principales de seguimiento/practicantes. Completar asistencia por día, horas/gestión del supervisor, administración/reportes, metas y selectores de prácticas que aún usan listas completas. El resumen de Notas abre la ficha individual para consultar tareas; el libro anterior sigue disponible por API, sin descargarse en esa vista.
+2. **Interiores y listas con volumen:** cinco pestañas para los cuatro roles; alumno paginado en sus recorridos principales y personal paginado en aulas, padrón, entregas, notas, tareas docentes y listas principales de seguimiento/practicantes. Completar asistencia por día, horas/gestión del supervisor, administración/reportes y selectores de prácticas de otros módulos que aún usan listas completas. El resumen de Notas abre la ficha individual para consultar tareas; el libro anterior sigue disponible por API, sin descargarse en esa vista.
 3. **Acceso institucional y recuperación:** Google está preparado y tiene clientes configurados, pero requiere el ingreso manual autorizado y una compilación nativa habilitada para comprobarlo. SMTP requiere un servicio/cuenta de envío configurada; el endpoint preparado por sí solo no entrega correos. La presentación no ofrece estos accesos como terminados.
 4. **Criterios académicos:** confirmar horas por modalidad, jornada, entregas tardías/excepciones, requisitos del expediente, rúbricas, cartas, atribuciones y conservación. Los valores técnicos o ejemplos no constituyen reglamento institucional.
 5. **Infraestructura del piloto:** definir almacenamiento y cuotas reales, rol de ejecución de base separado del propietario/migraciones, respaldos y restauración, operación del servidor y acceso a datos. La base actual está autorizada para pruebas ficticias.

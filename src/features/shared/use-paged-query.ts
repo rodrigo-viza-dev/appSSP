@@ -3,11 +3,11 @@ import { ApiError, type Session } from '@/services/api';
 import type { Page } from '@/services/module-pages';
 import { useAuth } from '@/state/auth';
 
-type Result<T> = { key: string; session: Session; data: Page<T> | null; error: ApiError | null; loading: boolean; moreError: string };
-export function usePagedQuery<T extends { id: string }>(resource: string, load: (s: Session, signal: AbortSignal, cursor?: string | null) => Promise<Page<T>>, enabled: boolean) {
+type Result<T, P extends Page<T>> = { key: string; session: Session; data: P | null; error: ApiError | null; loading: boolean; moreError: string };
+export function usePagedQuery<T extends { id: string }, P extends Page<T> = Page<T>>(resource: string, load: (s: Session, signal: AbortSignal, cursor?: string | null) => Promise<P>, enabled: boolean) {
   const { session, signOut } = useAuth();
-  const [attempt, setAttempt] = useState(0), [result, setResult] = useState<Result<T> | null>(null);
-  const key = JSON.stringify([resource, attempt]), cache = useRef<Result<T> | null>(null), pending = useRef<AbortController | null>(null);
+  const [attempt, setAttempt] = useState(0), [result, setResult] = useState<Result<T, P> | null>(null);
+  const key = JSON.stringify([resource, attempt]), cache = useRef<Result<T, P> | null>(null), pending = useRef<AbortController | null>(null);
   const current = result?.key === key && result.session === session ? result : null;
   useEffect(() => {
     if (!enabled || !session) return;
@@ -26,7 +26,7 @@ export function usePagedQuery<T extends { id: string }>(resource: string, load: 
     return () => { controller.abort(); pending.current?.abort(); pending.current = null; };
   }, [key, load, enabled, session, signOut]);
   useEffect(() => () => { pending.current?.abort(); pending.current = null; }, [key, enabled, session]);
-  function replaceData(update: (previous: Page<T>) => Page<T>) {
+  function replaceData(update: (previous: P) => P) {
     if (!current?.data) return;
     const next = { ...current, data: update(current.data) }; cache.current = next; setResult(next);
   }

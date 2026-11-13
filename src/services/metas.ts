@@ -1,14 +1,16 @@
 import { ApiError, request, type Session } from './api';
 import { contentText } from './comunidad';
+import { page, type Page } from './module-pages';
 
 export const metaKinds = [{ value: 'ARTICULOS', label: 'Artículos' }, { value: 'NOTAS_PERIODISTICAS', label: 'Notas periodísticas' }, { value: 'NOTAS_PRENSA', label: 'Notas de prensa' }, { value: 'HORAS', label: 'Horas validadas' }];
 export type PracticaMetas = { id: string; practicanteId: string; practicanteNombre: string; aulaNombre: string; periodo: string; estado: 'EN_CURSO' | 'LISTA_PARA_CIERRE' | 'CERRADA' };
+export type PracticeRef = { id: string; practicanteId: string; estado: string };
 export type Meta = { id: string; practicaId: string; practicanteId: string; practicanteNombre: string; tipo: string; cantidadObjetivo: number; cantidadAlcanzada: number; descripcion: string | null; creadoPor: string; fechaCreacion: string };
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === 'string' && !!v.trim();
 const count = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v >= 0;
 function invalid(): never { throw new ApiError(502, 'Las metas del servidor no son compatibles. Actualiza la consulta.'); }
-function parse(v: unknown, practica: PracticaMetas): Meta {
+function parse(v: unknown, practica: Pick<PracticaMetas, 'id' | 'practicanteId'>): Meta {
   if (!object(v) || !text(v.id) || v.practicaId !== practica.id || v.practicanteId !== practica.practicanteId || !text(v.practicanteNombre) || !metaKinds.some(k => k.value === v.tipo) || !count(v.cantidadObjetivo) || v.cantidadObjetivo === 0 || !count(v.cantidadAlcanzada) || !(v.descripcion === null || typeof v.descripcion === 'string') || !text(v.creadoPor) || !text(v.fechaCreacion) || !Number.isFinite(Date.parse(v.fechaCreacion))) invalid();
   return v as Meta;
 }
@@ -30,7 +32,19 @@ export async function getMetas(s: Session, practica: PracticaMetas, signal: Abor
   if (new Set(rows.map(r => r.id)).size !== rows.length) invalid();
   return rows;
 }
-function editor(s: Session, p: PracticaMetas) {
+export type GoalPage = Page<Meta> & { totalMetas: number; completadas: number };
+export type GoalFilter = 'TODAS' | 'EN_PROGRESO' | 'COMPLETADAS';
+export async function getGoalPage(s: Session, practica: Pick<PracticaMetas, 'id' | 'practicanteId'>, estado: GoalFilter, q: string, signal: AbortSignal, cursor?: string | null): Promise<GoalPage> {
+  const params = new URLSearchParams({ estado, limite: '20', q: q.trim(), ...(cursor ? { cursor } : {}) });
+  const raw = await request<unknown>(`/equipo/practicas/${encodeURIComponent(practica.id)}/metas/pagina?${params}`, s.token, undefined, signal);
+  const result = page(raw, v => parse(v, practica));
+  if (!object(raw) || !count(raw.totalMetas) || !count(raw.completadas) || raw.completadas > raw.totalMetas) invalid();
+  const total = Number(raw.totalMetas), done = Number(raw.completadas);
+  const expected = estado === 'COMPLETADAS' ? done : estado === 'EN_PROGRESO' ? total - done : total;
+  if ((!q.trim() && result.total !== expected) || result.total > expected) invalid();
+  return { ...result, totalMetas: total, completadas: done };
+}
+function editor(s: Session, p: Pick<PracticeRef, 'estado'>) {
   if (!['PROFESOR', 'ADMIN'].includes(s.user.role)) throw new ApiError(403, 'Solo docencia y administración gestiona metas.');
   if (p.estado === 'CERRADA') throw new ApiError(409, 'La práctica está cerrada.');
 }
@@ -39,14 +53,14 @@ export function validateMeta(v: Record<string, string>) {
   metaQuantity(v.objetivo, true);
   if (v.descripcion.trim()) contentText(v.descripcion, 'Descripción', 2000);
 }
-export async function crearMeta(s: Session, practica: PracticaMetas, v: Record<string, string>, solicitudId: string, signal: AbortSignal) {
+export async function crearMeta(s: Session, practica: PracticeRef, v: Record<string, string>, solicitudId: string, signal: AbortSignal) {
   editor(s, practica); validateMeta(v);
   const body = { tipo: v.tipo, cantidadObjetivo: metaQuantity(v.objetivo, true), descripcion: v.descripcion.trim() || null, solicitudId };
   const saved = parse(await request<unknown>(`/metas/practica/${encodeURIComponent(practica.id)}`, s.token, body, signal, { expectedStatus: 201 }), practica);
   if (saved.tipo !== body.tipo || saved.cantidadObjetivo !== body.cantidadObjetivo || saved.descripcion !== body.descripcion) invalid();
   return saved;
 }
-export async function guardarAvanceMeta(s: Session, practica: PracticaMetas, meta: Meta, v: Record<string, string>, signal: AbortSignal) {
+export async function guardarAvanceMeta(s: Session, practica: PracticeRef, meta: Meta, v: Record<string, string>, signal: AbortSignal) {
   editor(s, practica);
   if (meta.tipo === 'HORAS') throw new ApiError(409, 'Las metas de horas se calculan desde las horas validadas.');
   const { cantidad, motivo } = validateAvanceMeta(meta, v);
