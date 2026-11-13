@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { FlatList, Text, View } from 'react-native';
 import { Badge, Button, Field, typography } from '@/components/ui';
@@ -7,6 +7,7 @@ import { StudentGroup, StudentRow, studentStyles as s } from '@/features/alumno/
 import { FilterChip, ListHeading, PageFooter, PagedList } from '@/features/alumno/paged-components';
 import { useAppRouter } from '@/features/alumno/navigation';
 import { usePagedQuery } from '@/features/shared/use-paged-query';
+import { useSearch } from '@/features/shared/use-search';
 import { useDocenteQuery } from '@/features/shared/use-docente-query';
 import { getAulaDocente } from '@/services/docencia';
 import { getClassroomPage, getDeliveryPage, getGradePage, getPracticePage, getStudentPage, type GradePage, type GradeSummary, type StudentSummary, type DeliverySummary } from '@/services/staff-pages';
@@ -15,11 +16,6 @@ import { academicDate } from '@/utils/date';
 import { useAuth } from '@/state/auth';
 import { useStaffData } from './data-state';
 
-function useSearch() {
-  const [value, setValue] = useState(''), [query, setQuery] = useState('');
-  useEffect(() => { const timer = setTimeout(() => setQuery(value.trim()), 350); return () => clearTimeout(timer); }, [value]);
-  return { value, setValue, query, waiting: value.trim() !== query };
-}
 const gap = { gap: 12 };
 
 export function StaffClassrooms() {

@@ -7,15 +7,6 @@ export async function getTaskCapabilities(session: Session, signal: AbortSignal)
   if (value?.versionTareas !== 1 || value.entregaTexto !== true) throw new ApiError(502, 'El servidor todavía no ofrece publicación y entrega escrita de tareas.');
   return value;
 }
-export async function getTeacherTasks(session: Session, aulaId: string, signal: AbortSignal): Promise<Tarea[]> {
-  if (!['PROFESOR', 'ADMIN'].includes(session.user.role)) throw new ApiError(403, 'Sección exclusiva de docencia.');
-  await getTaskCapabilities(session, signal);
-  const values = await request<unknown>(`/profesor/aulas/${encodeURIComponent(aulaId)}/tareas`, session.token, undefined, signal);
-  if (!Array.isArray(values)) throw new ApiError(502, 'No se pudo interpretar el listado de tareas.');
-  const tasks = values.map(v => parseTareaResponse(v, aulaId));
-  if (new Set(tasks.map(v => v.id)).size !== tasks.length) throw new ApiError(502, 'El listado de tareas contiene duplicados.');
-  return tasks;
-}
 export function validateTaskDraft(value: TaskDraft, publishing: boolean) {
   const descripcion = value.descripcion.trim();
   if (!descripcion || descripcion.length > 6000) throw new ApiError(400, publishing ? 'Escribe las instrucciones (hasta 6000 caracteres).' : 'Escribe tu respuesta (hasta 6000 caracteres).');

@@ -4,7 +4,8 @@ import { Button, Card, Field, typography } from '@/components/ui';
 import { useAuth } from '@/state/auth';
 import { ApiError } from '@/services/api';
 import { getTarea, type Tarea } from '@/services/aulas';
-import { getTeacherTasks, matchesPublished, publishTask, submitWrittenTask, validateTaskDraft, type TaskDraft } from '@/services/tareas';
+import { getTaskDetail } from '@/services/staff-pages';
+import { matchesPublished, publishTask, submitWrittenTask, validateTaskDraft, type TaskDraft } from '@/services/tareas';
 export function TaskForm({ aulaId, task, onSaved, onBusy }: { aulaId: string; task?: Tarea; onSaved: () => void; onBusy: (v: boolean) => void }) {
   const { session, signOut } = useAuth();
   const publishing = !task;
@@ -19,7 +20,11 @@ export function TaskForm({ aulaId, task, onSaved, onBusy }: { aulaId: string; ta
     const controller = new AbortController(); pending.current = controller; setBusy(true); onBusy(true); setError('');
     try {
       if (consult) {
-        const found = publishing ? (await getTeacherTasks(session, aulaId, controller.signal)).find(t => t.id === `t-${value.solicitudId}`) : await getTarea(session, aulaId, task!.id, controller.signal);
+        let found: Tarea | null = null;
+        if (publishing) {
+          try { found = await getTaskDetail(session, aulaId, `t-${value.solicitudId}`, controller.signal); }
+          catch (reason) { if (!(reason instanceof ApiError && reason.status === 404)) throw reason; }
+        } else found = await getTarea(session, aulaId, task!.id, controller.signal);
         if (controller.signal.aborted) return;
         if (publishing ? !!found : !!found?.entrega) {
           const matches = publishing ? matchesPublished(found!, value) : found!.entrega!.descripcion === value.descripcion.trim() && found!.entrega!.comentario === value.comentario.trim() && found!.entrega!.archivoId === null;

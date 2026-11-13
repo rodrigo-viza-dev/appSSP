@@ -31,7 +31,8 @@ let stage = 'preparar', activePage;
   const deliveries = students.map((student, i) => ({ id: 'fixture-e-' + i, tareaId: 'fixture-task', tareaTitulo: 'Informe ' + String(i).padStart(3, '0'), alumnoId: student.alumnoId, alumnoNombre: student.alumnoNombre, createdAt: date, estado: 'ENTREGADA', nota: null, revision: 2, descripcion: 'Contenido individual de la entrega ' + i, comentario: '', archivoId: null, retroalimentacion: null }));
   const grades = students.map(student => ({ id: student.id, alumnoId: student.alumnoId, alumnoNombre: student.alumnoNombre, aulaId: classroom.id, promedio: 0, asistenciaPct: null, horasValidadas: 8 }));
   const practices = students.map((student, i) => ({ id: 'fixture-p-' + i, practicanteId: student.alumnoId, practicanteNombre: student.alumnoNombre, aulaId: classroom.id, aulaNombre: classroom.nombre, periodo: 'TEST', horasAcumuladas: 8, horasMinimas: 360, estado: i < 7 ? 'CERRADA' : 'EN_CURSO' }));
-  let failMore = true, denied = false, gradeWrites = 0;
+  const tasks = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-k-' + i, aulaId: classroom.id, titulo: 'Informe ' + String(i).padStart(3, '0'), resumen: 'Resumen de la tarea ' + i, fechaLimite: null, createdAt: date, revision: i % 3, entregas: i }));
+  let failMore = true, failTaskMore = true, denied = false, gradeWrites = 0;
   const browser = await chromium.launch({ headless: true });
   async function create(name, fixture = false) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } }), page = await context.newPage(); activePage = page; page.setDefaultTimeout(25000);
@@ -52,6 +53,14 @@ let stage = 'preparar', activePage;
           return slice(search(aulas));
         }
         if (pathname === '/api/v1/equipo/aulas/' + classroom.id) return json(200, classroom);
+        if (pathname === '/api/v1/equipo/aulas/' + classroom.id + '/tareas/pagina') {
+          if (url.searchParams.has('cursor') && failTaskMore) { failTaskMore = false; return json(503, {}); }
+          return slice(search(tasks));
+        }
+        if (pathname.startsWith('/api/v1/equipo/aulas/' + classroom.id + '/tareas/')) {
+          const row = tasks.find(t => t.id === pathname.split('/').at(-1));
+          return row ? json(200, { ...row, descripcion: 'Instrucciones completas de ' + row.titulo, entrega: null }) : json(404, {});
+        }
         if (pathname.endsWith('/alumnos/pagina')) return slice(search(students));
         if (pathname.endsWith('/notas/pagina')) return slice(search(grades), { promedioGeneral: 0 });
         if (pathname.endsWith('/entregas/pagina')) return slice(search(deliveries.filter(d => url.searchParams.get('pendientes') !== 'true' || d.nota === null)).map(({ descripcion, comentario, archivoId, retroalimentacion, revision, ...row }) => row));
@@ -83,13 +92,14 @@ let stage = 'preparar', activePage;
     await real.getByRole('button', { name: new RegExp('^' + aula.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).click(); await heading(real, aula.nombre);
     await button(real, 'Alumnos').click(); await button(real, 'Actualizar estudiantes').waitFor();
     await button(real, 'Notas').click(); await button(real, 'Actualizar notas').waitFor();
-    await button(real, 'Recursos').click(); await real.getByRole('button', { name: /^Publicar y consultar tareas / }).click(); await heading(real, 'Tareas del aula'); await button(real, 'Volver').click();
+    await button(real, 'Recursos').click(); await real.getByRole('button', { name: /^Publicar y consultar tareas / }).click(); await heading(real, 'Tareas del aula'); await button(real, 'Actualizar tareas publicadas').waitFor(); await button(real, 'Volver').click();
     await button(real, 'Recursos').click(); await real.getByRole('button', { name: /^Tomar asistencia académica / }).click(); await heading(real, 'Asistencia académica');
     if (realDeliveries.items.length) {
       const delivery = realDeliveries.items[0]; await real.goto(web + '/revisar-entrega?aulaId=' + encodeURIComponent(aula.id) + '&entregaId=' + encodeURIComponent(delivery.id), { waitUntil: 'networkidle' });
       await heading(real, 'Revisar entrega'); await real.getByText('Nota actual: ' + (delivery.nota ?? 'Sin calificar'), { exact: true }).waitFor();
     }
     assert.equal(requests.filter(r => !r.fixture && r.path.endsWith('/historial')).length, 0);
+    assert.ok(requests.some(r => !r.fixture && r.role === 'profesor' && r.path.endsWith('/tareas/pagina')));
     checks.push('Docente real: aulas, padrón, notas, tareas/asistencia y detalle individual de entrega sin consultas completas ni historial automático'); await real.context().close();
 
     stage = 'volumen aulas'; const teacher = await create('profesor', true);
@@ -123,6 +133,18 @@ let stage = 'preparar', activePage;
     assert.equal(gradeWrites, 0); await button(teacher, 'Confirmar calificación').click(); await teacher.getByText('Calificación guardada y confirmada por el servidor.', { exact: true }).waitFor();
     assert.equal(gradeWrites, 1); await button(teacher, 'Volver').click(); await counter(teacher, '20 de 44 entregas');
     await top(teacher); assert.equal(await teacher.getByRole('button', { name: /^Informe 000 / }).count(), 0);
+    stage = 'tareas docentes';
+    await button(teacher, 'Recursos').click(); await teacher.getByRole('button', { name: /^Publicar y consultar tareas / }).click();
+    await heading(teacher, 'Tareas del aula'); await counter(teacher, '20 de 45 tareas');
+    await top(teacher); await button(teacher, 'Ver más').click(); await button(teacher, 'Reintentar carga').waitFor(); await counter(teacher, '20 de 45 tareas');
+    await button(teacher, 'Reintentar carga').click(); await counter(teacher, '40 de 45 tareas'); await more(teacher, '45 de 45 tareas');
+    await top(teacher); await teacher.getByLabel('Buscar tarea', { exact: true }).fill('Informe 000'); await counter(teacher, '1 de 1 tareas');
+    await teacher.getByRole('button', { name: /^Informe 000 / }).click(); await teacher.getByText('Editar instrucciones o ampliar plazo', { exact: true }).waitFor();
+    assert.ok(requests.some(r => r.fixture && r.path === '/api/v1/equipo/aulas/' + classroom.id + '/tareas/fixture-k-0'));
+    assert.equal(await teacher.getByLabel('Título de la tarea', { exact: true }).inputValue(), 'Informe 000');
+    await button(teacher, 'Cancelar edición de tarea').click(); await counter(teacher, '1 de 1 tareas');
+    await button(teacher, 'Volver').click(); await button(teacher, 'Entregas').click(); await counter(teacher, '20 de 44 entregas');
+    checks.push('Tareas docentes 20→40→45 con fallo/reintento, búsqueda en servidor y detalle exacto solo al abrir la tarea');
     await button(teacher, 'Volver').click(); assert.equal(await teacher.getByRole('tab').count(), 5); denied = true; await button(teacher, 'Actualizar aulas').click(); await teacher.getByRole('alert').filter({ hasText: 'No tienes permiso para esta acción.' }).waitFor();
     assert.equal(await teacher.getByRole('button', { name: new RegExp('^' + classroom.nombre + ' ') }).count(), 0);
     checks.push('Detalle puntual, nota cero confirmada con revisión vigente y actualización de pendientes; permiso retirado vacía la lista'); await teacher.context().close();
@@ -138,7 +160,7 @@ let stage = 'preparar', activePage;
     await admin.getByLabel('Buscar aula', { exact: true }).fill(aula.nombre); await admin.getByRole('button', { name: new RegExp('^' + aula.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).waitFor();
     assert.ok(requests.some(r => !r.fixture && r.role === 'admin' && r.path === '/api/v1/equipo/aulas/pagina'));
     checks.push('Administración consulta aulas y búsqueda real por su rol'); await admin.context().close();
-    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro)$/.test(r.path) || r.path === '/api/v1/practicas');
+    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas');
     assert.deepEqual(obsolete, []); assert.deepEqual(errors, []); assert.deepEqual(writes, []); assert.deepEqual(foreignApis, []);
     const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
     fs.writeFileSync('.expo/dev/personal28-verificacion.json', JSON.stringify(report, null, 2)); console.log(JSON.stringify(report, null, 2));

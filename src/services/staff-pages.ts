@@ -1,5 +1,6 @@
 import { ApiError, request, type Session } from './api';
 import { page, type Page } from './module-pages';
+import { parseTareaResponse, type Tarea } from './aulas';
 import type { AulaDocente, EntregaDocente, PracticanteDocente } from './docencia';
 import type { PracticaExpediente } from './expedientes';
 
@@ -8,6 +9,7 @@ export type DeliverySummary = Pick<EntregaDocente, 'id' | 'tareaId' | 'tareaTitu
 export type StudentSummary = PracticanteDocente & { id: string };
 export type GradeSummary = { id: string; alumnoId: string; alumnoNombre: string; aulaId: string; promedio: number | null; asistenciaPct: number | null; horasValidadas: number };
 export type GradePage = Page<GradeSummary> & { promedioGeneral: number | null };
+export type TaskSummary = { id: string; aulaId: string; titulo: string; resumen: string; fechaLimite: string | null; createdAt: string; revision: number; entregas: number };
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === 'string';
 const count = (v: unknown): v is number => Number.isSafeInteger(v) && Number(v) >= 0;
@@ -57,4 +59,21 @@ export async function getPracticePage(s: Session, estado: string, q: string, sig
     if (!object(v) || !['id', 'practicanteId', 'practicanteNombre', 'aulaId', 'aulaNombre', 'periodo'].every(k => text(v[k])) || !v.id || !['EN_CURSO', 'LISTA_PARA_CIERRE', 'CERRADA'].includes(String(v.estado)) || !count(v.horasAcumuladas) || !count(v.horasMinimas) || estado === 'ABIERTAS' && v.estado === 'CERRADA' || estado === 'CERRADAS' && v.estado !== 'CERRADA') invalid();
     return v as PracticaExpediente;
   });
+}
+export async function getTaskPage(s: Session, id: string, q: string, signal: AbortSignal, cursor?: string | null) {
+  personal(s);
+  return page(await request(`${path(id)}/tareas/pagina?${query(cursor, q)}`, s.token, undefined, signal), v => {
+    if (!object(v) || !text(v.id) || !v.id || v.aulaId !== id || !text(v.titulo) || !text(v.resumen) || v.resumen.length > 180
+      || !(v.fechaLimite === null || text(v.fechaLimite) && Number.isFinite(Date.parse(v.fechaLimite)))
+      || !text(v.createdAt) || !Number.isFinite(Date.parse(v.createdAt)) || !count(v.revision) || !count(v.entregas)) invalid();
+    return v as TaskSummary;
+  });
+}
+export async function getTaskDetail(s: Session, id: string, tareaId: string, signal: AbortSignal): Promise<Tarea> {
+  personal(s);
+  if (!tareaId.trim()) throw new ApiError(400, 'Abre la tarea desde el listado del aula.');
+  const value = await request<unknown>(`${path(id)}/tareas/${encodeURIComponent(tareaId)}`, s.token, undefined, signal);
+  const task = parseTareaResponse(value, id);
+  if (task.id !== tareaId || !Number.isInteger(task.revision) || task.revision! < 0) invalid();
+  return task;
 }
