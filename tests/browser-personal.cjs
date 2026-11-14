@@ -31,8 +31,10 @@ let stage = 'preparar', activePage;
   const deliveries = students.map((student, i) => ({ id: 'fixture-e-' + i, tareaId: 'fixture-task', tareaTitulo: 'Informe ' + String(i).padStart(3, '0'), alumnoId: student.alumnoId, alumnoNombre: student.alumnoNombre, createdAt: date, estado: 'ENTREGADA', nota: null, revision: 2, descripcion: 'Contenido individual de la entrega ' + i, comentario: '', archivoId: null, retroalimentacion: null }));
   const grades = students.map(student => ({ id: student.id, alumnoId: student.alumnoId, alumnoNombre: student.alumnoNombre, aulaId: classroom.id, promedio: 0, asistenciaPct: null, horasValidadas: 8 }));
   const practices = students.map((student, i) => ({ id: 'fixture-p-' + i, practicanteId: student.alumnoId, practicanteNombre: student.alumnoNombre, aulaId: classroom.id, aulaNombre: classroom.nombre, periodo: 'TEST', horasAcumuladas: 8, horasMinimas: 360, estado: i < 7 ? 'CERRADA' : 'EN_CURSO' }));
+  const hourRows = Array.from({ length: 45 }, (_, i) => { const day = new Date('2026-10-24T12:00:00Z'); day.setUTCDate(day.getUTCDate() - i); return { id: 'fixture-h-' + String(i).padStart(2, '0'), practicaId: 'fixture-p-7', fecha: day.toISOString(), horas: i < 15 ? 1 : 2, descripcion: 'Actividad ' + String(i).padStart(2, '0'), estadoValidacion: i < 15 ? 'PENDIENTE' : i < 21 ? 'RECHAZADO' : 'VALIDADO', revision: 0, observacion: i >= 15 && i < 21 ? 'Corrige la actividad' : '' }; });
+  const hourTotals = key => hourRows.filter(r => r.estadoValidacion === key).reduce((sum, r) => sum + r.horas, 0);
   const tasks = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-k-' + i, aulaId: classroom.id, titulo: 'Informe ' + String(i).padStart(3, '0'), resumen: 'Resumen de la tarea ' + i, fechaLimite: null, createdAt: date, revision: i % 3, entregas: i }));
-  let failMore = true, failTaskMore = true, denied = false, gradeWrites = 0;
+  let failMore = true, failTaskMore = true, failHoursMore = true, denied = false, gradeWrites = 0, reviewWrites = 0;
   const browser = await chromium.launch({ headless: true });
   async function create(name, fixture = false) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } }), page = await context.newPage(); activePage = page; page.setDefaultTimeout(25000);
@@ -68,6 +70,22 @@ let stage = 'preparar', activePage;
           const row = deliveries.find(d => d.id === pathname.split('/').at(-1)); return row ? json(200, row) : json(404, {});
         }
         if (pathname === '/api/v1/equipo/practicas/pagina') return slice(search(practices.filter(p => url.searchParams.get('estado') === 'CERRADAS' ? p.estado === 'CERRADA' : url.searchParams.get('estado') === 'ABIERTAS' ? p.estado !== 'CERRADA' : true)));
+        if (pathname === '/api/v1/practicas/capacidades') return json(200, { versionHoras: 2 });
+        if (pathname === '/api/v1/equipo/practicas/fixture-p-7') return json(200, practices[7]);
+        if (pathname === '/api/v1/equipo/practicas/fixture-p-7/horas/pagina') {
+          const estado = url.searchParams.get('estado') || 'TODAS';
+          const map = { PENDIENTES: 'PENDIENTE', VALIDADAS: 'VALIDADO', RECHAZADAS: 'RECHAZADO' };
+          const pool = hourRows.filter(r => estado === 'TODAS' || r.estadoValidacion === map[estado]);
+          if (url.searchParams.has('cursor') && failHoursMore) { failHoursMore = false; return json(503, {}); }
+          const start = Number(url.searchParams.get('cursor') || 0);
+          return json(200, { items: pool.slice(start, start + 20), total: pool.length, siguiente: start + 20 < pool.length ? String(start + 20) : null, horasValidadas: hourTotals('VALIDADO'), horasPendientes: hourTotals('PENDIENTE'), horasRechazadas: hourTotals('RECHAZADO') });
+        }
+        if (pathname.includes('/empresa/horas/') && request.method() === 'PUT') {
+          const value = request.postDataJSON(), row = hourRows.find(r => pathname.includes('/' + r.id));
+          assert.ok(row); assert.equal(value.revision, row.revision);
+          row.estadoValidacion = value.estadoValidacion; row.observacion = value.observacion; row.revision += 1;
+          reviewWrites++; return json(200, row);
+        }
         if (pathname.endsWith('/calificar') && request.method() === 'PUT') {
           gradeWrites++; const value = request.postDataJSON(), row = deliveries.find(d => pathname.includes('/' + d.id + '/'));
           assert.ok(row); assert.equal(value.nota, 0); assert.equal(value.revisionEntrega, 2);
@@ -167,7 +185,27 @@ let stage = 'preparar', activePage;
     await supervisor.goto(web + '/equipo/trabajo', { waitUntil: 'networkidle' }); await heading(supervisor, 'Mis practicantes'); await counter(supervisor, '20 de 45 prácticas');
     assert.equal(await supervisor.getByRole('textbox').count(), 0); await more(supervisor, '40 de 45 prácticas'); await more(supervisor, '45 de 45 prácticas'); await top(supervisor);
     await button(supervisor, 'Cerradas').click(); await counter(supervisor, '7 de 7 prácticas'); await button(supervisor, 'Abiertas').click(); await counter(supervisor, '20 de 38 prácticas'); await supervisor.screenshot({ path: '.expo/dev/personal28-supervisor.png' });
-    checks.push('Supervisor sin buscador: páginas y filtros de prácticas abiertas/cerradas'); await supervisor.context().close();
+    const capsCall = supervisor.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/practicas/capacidades');
+    await supervisor.goto(web + '/equipo/revision', { waitUntil: 'networkidle' }); await heading(supervisor, 'Validar horas'); await capsCall;
+    await counter(supervisor, '20 de 45 prácticas');
+    const detailCall = supervisor.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/equipo/practicas/fixture-p-7');
+    await supervisor.getByRole('button', { name: /Practicante 007/ }).first().click(); await detailCall;
+    await counter(supervisor, '20 de 45 actividades'); await counter(supervisor, '48 h validadas · Meta: 360 h');
+    await button(supervisor, 'Ver más').click(); await button(supervisor, 'Reintentar carga').waitFor(); await counter(supervisor, '20 de 45 actividades');
+    await button(supervisor, 'Reintentar carga').click(); await counter(supervisor, '40 de 45 actividades');
+    await button(supervisor, 'Pendientes').click(); await counter(supervisor, '15 de 15 actividades');
+    await button(supervisor, 'Todas').click(); await counter(supervisor, '20 de 45 actividades');
+    await supervisor.getByRole('button', { name: 'Validar horas', exact: true }).first().click();
+    await supervisor.getByText('Se validarán 1 h.').waitFor();
+    await button(supervisor, 'Confirmar revisión').click();
+    await supervisor.getByText('Revisión guardada y confirmada por el servidor.', { exact: true }).waitFor();
+    await counter(supervisor, '49 h validadas · Meta: 360 h'); await counter(supervisor, '20 de 45 actividades');
+    await supervisor.waitForTimeout(1200);
+    await button(supervisor, 'Validadas').click(); await counter(supervisor, '20 de 25 actividades');
+    await button(supervisor, 'Ver más').click(); await counter(supervisor, '25 de 25 actividades');
+    assert.equal(reviewWrites, 1);
+    checks.push('Supervisor: selector paginado, bitácora de horas por páginas con filtros y totales globales, y revisión confirmada'); await supervisor.context().close();
+    checks.push('Supervisor sin buscador: páginas y filtros de prácticas abiertas/cerradas');
 
     stage = 'administracion real'; const admin = await create('admin');
     await admin.goto(web + '/docencia', { waitUntil: 'networkidle' }); await heading(admin, 'Mis aulas · Docencia');
@@ -176,7 +214,7 @@ let stage = 'preparar', activePage;
     checks.push('Administración consulta aulas y búsqueda real por su rol'); await admin.context().close();
     const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas');
     assert.deepEqual(obsolete, []); assert.deepEqual(errors, []); assert.deepEqual(writes, []); assert.deepEqual(foreignApis, []);
-    const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
+    const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, isolatedReviewWrites: reviewWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
     fs.writeFileSync('.expo/dev/personal28-verificacion.json', JSON.stringify(report, null, 2)); console.log(JSON.stringify(report, null, 2));
   } catch (error) { if (activePage && !activePage.isClosed()) await activePage.screenshot({ path: '.expo/dev/personal28-revision-pendiente.png' }).catch(() => {}); throw error; }
   finally { await browser.close(); }

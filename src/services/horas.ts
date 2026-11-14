@@ -1,4 +1,5 @@
 import { ApiError, request, type Session } from './api';
+import { page, type Page } from './module-pages';
 import { todayLima, validAttendanceDate } from './asistencia';
 
 export type PracticaHoras = { correcciones?: boolean; id: string; practicanteId: string; practicanteNombre: string; aulaNombre: string; periodo: string; horasAcumuladas: number; horasMinimas: number; estado: 'EN_CURSO' | 'LISTA_PARA_CIERRE' | 'CERRADA' };
@@ -35,6 +36,23 @@ export async function getHoras(session: Session, practicaId: string, signal: Abo
   const result = (values as unknown[]).map(v => record(v, practicaId));
   if (new Set(result.map(v => v.id)).size !== result.length) invalid();
   return result;
+}
+export type HoursFilter = 'TODAS' | 'PENDIENTES' | 'VALIDADAS' | 'RECHAZADAS';
+export type HoursPage = Page<RegistroHoras> & { horasValidadas: number; horasPendientes: number; horasRechazadas: number };
+export async function getHorasCaps(session: Session, signal: AbortSignal): Promise<boolean> {
+  if (session.user.role !== 'SUPERVISOR') throw new ApiError(403, 'Sección para supervisores.');
+  const caps = await request<unknown>('/practicas/capacidades', session.token, undefined, signal);
+  if (!object(caps) || ![1, 2].includes(Number(caps.versionHoras))) throw new ApiError(502, 'Este servidor todavía no ofrece el circuito de horas actualizado.');
+  return Number(caps.versionHoras) === 2;
+}
+export async function getHorasPage(session: Session, practicaId: string, estado: HoursFilter, signal: AbortSignal, cursor?: string | null): Promise<HoursPage> {
+  if (session.user.role !== 'SUPERVISOR') throw new ApiError(403, 'Solo el supervisor consulta la bitácora por páginas.');
+  if (!practicaId.trim()) throw new ApiError(400, 'Abre la práctica desde la lista.');
+  const query = new URLSearchParams({ limite: '20', estado, ...(cursor ? { cursor } : {}) });
+  const raw = await request<unknown>(`/equipo/practicas/${encodeURIComponent(practicaId)}/horas/pagina?${query}`, session.token, undefined, signal);
+  const result = page(raw, v => record(v, practicaId));
+  if (!object(raw) || !count(raw.horasValidadas) || !count(raw.horasPendientes) || !count(raw.horasRechazadas)) invalid();
+  return { ...result, horasValidadas: raw.horasValidadas as number, horasPendientes: raw.horasPendientes as number, horasRechazadas: raw.horasRechazadas as number };
 }
 export function validateHoras(value: HorasDraft) {
   if (!validAttendanceDate(value.fecha) || value.fecha > todayLima()) throw new ApiError(400, 'Escribe una fecha válida que no sea futura (AAAA-MM-DD).');
