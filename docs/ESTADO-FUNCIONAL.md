@@ -6,7 +6,7 @@ Revisión del 13 de noviembre de 2026, desarrollo hasta el incremento 30. Este d
 
 La presentación está fijada en `avance-2026-10-23-v0.2.0`: web y APK independientes del PC, API dedicada, datos ficticios y credenciales propias. El desarrollo continúa en `desarrollo/post-presentacion-2026-10-23`, con `ssp_test`. Los incrementos 25–30 no reemplazan esa web ni ese APK.
 
-El 13 de noviembre el pooler de Supabase rechazó la conexión a `ssp_test` (`tenant/user not found`). Las verificaciones de ese día usaron SQLite y una API simulada en el navegador; para reanudar los recorridos reales hay que restablecer el proyecto y comprobar el esquema antes de continuar.
+El 13 de noviembre el pooler de Supabase rechazó la conexión a `ssp_test` (`tenant/user not found`). El proyecto se restableció y el 14 de noviembre `/dev/ready` responde con `ssp_test` y la base alcanzable; los recorridos reales del personal, incluidas las metas paginadas, pasaron contra la API ese día.
 
 ## Módulos disponibles
 
@@ -17,7 +17,7 @@ El 13 de noviembre el pooler de Supabase rechazó la conexión a `ssp_test` (`te
 | Bitácora y horas | Registro, borrador, validación/rechazo, corrección, historial y paginación; solo horas validadas cuentan hacia la meta. | Revisar recorrido completo con teclado y Atrás en Android. No verifica presencia física ni jornada. |
 | Centro y supervisor | Registro con revisión previa, consulta del contacto, cuenta y vínculo gestionados por administración. | Registrar un contacto no le concede acceso; la coordinación debe vincular la cuenta. |
 | Asignaciones | Práctica vinculada a matrícula, centro propio, supervisor y meta de horas explícita; reasignación con control de vínculos. Seguimiento docente y Practicantes del supervisor consultan páginas con horas validadas y filtros de abiertas/cerradas. | Los selectores de otros módulos conservan listas completas. Revisar casos del piloto con responsables y datos institucionales autorizados. |
-| Metas | Objetivos por práctica y producción revisada por docente; las horas se calculan desde las validadas. El personal elige la práctica desde un selector paginado con búsqueda y consulta sus metas por páginas con filtros y resumen global; el enlace directo usa un detalle exacto de la práctica. | Las metas del alumno y del expediente conservan consultas completas. Revisar el recorrido con datos reales cuando se restablezca `ssp_test`. |
+| Metas | Objetivos por práctica y producción revisada por docente; las horas se calculan desde las validadas. El personal elige la práctica desde un selector paginado con búsqueda y consulta sus metas por páginas con filtros y resumen global; el enlace directo usa un detalle exacto de la práctica. El recorrido del personal se verificó con `ssp_test` real. | Las metas del alumno y del expediente conservan consultas completas. |
 | Expediente y PDF | Evaluación del supervisor, requisitos explícitos, checklist, autorización docente, copia conservada y PDF privado. Resumen ligero para alumno. | Sin reapertura, firma digital, rúbrica ni cartas institucionales. Los criterios académicos deben confirmarse. |
 | Asistencia académica | Padrón, revisión, guardado confirmado, conflictos y auditoría de cambios. | No equivale a entrada/salida en el centro. Falta padrón histórico y paginación de listas administrativas. |
 | Avisos | Bandeja por usuario, filtros y páginas, lectura explícita y destinos exactos para tareas/horas. | Sin push, entrega en segundo plano ni actualización en tiempo real. |

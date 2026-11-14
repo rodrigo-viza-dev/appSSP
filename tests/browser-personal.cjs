@@ -92,15 +92,28 @@ let stage = 'preparar', activePage;
     await real.getByRole('button', { name: new RegExp('^' + aula.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).click(); await heading(real, aula.nombre);
     await button(real, 'Alumnos').click(); await button(real, 'Actualizar estudiantes').waitFor();
     await button(real, 'Notas').click(); await button(real, 'Actualizar notas').waitFor();
-    await button(real, 'Recursos').click(); await real.getByRole('button', { name: /^Publicar y consultar tareas / }).click(); await heading(real, 'Tareas del aula'); await button(real, 'Actualizar tareas publicadas').waitFor(); await button(real, 'Volver').click();
+    await button(real, 'Recursos').click();
+    const realTasks = real.waitForResponse(response => new URL(response.url()).pathname.endsWith('/tareas/pagina'));
+    await real.getByRole('button', { name: /^Publicar y consultar tareas / }).click(); await heading(real, 'Tareas del aula'); await realTasks;
+    await button(real, 'Actualizar tareas publicadas').waitFor(); await button(real, 'Volver').click();
     await button(real, 'Recursos').click(); await real.getByRole('button', { name: /^Tomar asistencia académica / }).click(); await heading(real, 'Asistencia académica');
     if (realDeliveries.items.length) {
       const delivery = realDeliveries.items[0]; await real.goto(web + '/revisar-entrega?aulaId=' + encodeURIComponent(aula.id) + '&entregaId=' + encodeURIComponent(delivery.id), { waitUntil: 'networkidle' });
       await heading(real, 'Revisar entrega'); await real.getByText('Nota actual: ' + (delivery.nota ?? 'Sin calificar'), { exact: true }).waitFor();
     }
+    const realPractices = await get('profesor', '/equipo/practicas/pagina?limite=20');
+    const realPractice = realPractices.items[0]; assert.ok(realPractice, 'El profesor no tiene prácticas para consultar metas.');
+    const realGoals = real.waitForResponse(response => new URL(response.url()).pathname.endsWith('/metas/pagina'));
+    await real.goto(web + '/metas?practicaId=' + encodeURIComponent(realPractice.id), { waitUntil: 'networkidle' });
+    await heading(real, 'Metas de prácticas'); await realGoals; await button(real, 'Actualizar metas').waitFor();
+    assert.ok(requests.some(r => !r.fixture && r.role === 'profesor' && r.path === '/api/v1/equipo/practicas/' + realPractice.id));
+    assert.ok(requests.some(r => !r.fixture && r.role === 'profesor' && r.path.endsWith('/metas/pagina')));
+    const realSelector = real.waitForResponse(response => new URL(response.url()).pathname.endsWith('/practicas/pagina'));
+    await button(real, 'Elegir otra práctica').click(); await realSelector; await heading(real, 'Metas de prácticas');
+    assert.ok(requests.some(r => !r.fixture && r.role === 'profesor' && r.path === '/api/v1/equipo/practicas/pagina'));
     assert.equal(requests.filter(r => !r.fixture && r.path.endsWith('/historial')).length, 0);
     assert.ok(requests.some(r => !r.fixture && r.role === 'profesor' && r.path.endsWith('/tareas/pagina')));
-    checks.push('Docente real: aulas, padrón, notas, tareas/asistencia y detalle individual de entrega sin consultas completas ni historial automático'); await real.context().close();
+    checks.push('Docente real: aulas, padrón, notas, tareas/asistencia, metas paginadas con detalle exacto y selector paginado, y consulta individual de entrega sin consultas completas ni historial automático'); await real.context().close();
 
     stage = 'volumen aulas'; const teacher = await create('profesor', true);
     await teacher.goto(web + '/docencia', { waitUntil: 'networkidle' }); await counter(teacher, '20 de 45 aulas');
