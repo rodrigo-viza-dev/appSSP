@@ -43,3 +43,20 @@ export async function saveAsistencia(session: Session, base: Asistencia, items: 
   if (saved.items.length !== items.length || saved.items.some(v => expected.get(v.practicanteId) !== v.presente)) throw new ApiError(502, 'La lista confirmada cambió. Consulta el estado actual antes de guardar otra vez.');
   return saved;
 }
+
+export type AttendanceDayRow = { id: string; fecha: string; presentes: number; registrados: number };
+export type AttendanceHistoryPage = { items: AttendanceDayRow[]; total: number; siguiente: string | null };
+export async function getAttendanceHistory(session: Session, aulaId: string, signal: AbortSignal, cursor?: string | null): Promise<AttendanceHistoryPage> {
+  if (!['PROFESOR', 'ADMIN'].includes(session.user.role)) throw new ApiError(403, 'La asistencia académica está disponible para docencia y administración.');
+  if (!aulaId.trim()) throw new ApiError(400, 'Revisa el aula antes de consultar el historial.');
+  const query = new URLSearchParams({ limite: '20' });
+  if (cursor) query.set('cursor', cursor);
+  const data = await request<unknown>(`/profesor/aulas/${encodeURIComponent(aulaId)}/asistencia/historial?${query}`, session.token, undefined, signal);
+  const value = data as Partial<AttendanceHistoryPage> | null;
+  if (!value || !Array.isArray(value.items) || typeof value.total !== 'number'
+    || (value.siguiente !== null && typeof value.siguiente !== 'string')
+    || !value.items.every(v => v && typeof v.fecha === 'string' && validAttendanceDate(v.fecha)
+      && typeof v.presentes === 'number' && typeof v.registrados === 'number'
+      && 0 <= v.presentes && v.presentes <= v.registrados)) throw new ApiError(502, 'La respuesta del historial no es compatible. Consulta nuevamente.');
+  return { ...value, items: value.items.map(v => ({ ...v, id: v.fecha })) } as AttendanceHistoryPage;
+}
