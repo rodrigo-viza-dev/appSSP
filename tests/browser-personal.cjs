@@ -34,8 +34,17 @@ let stage = 'preparar', activePage;
   const hourRows = Array.from({ length: 45 }, (_, i) => { const day = new Date('2026-10-24T12:00:00Z'); day.setUTCDate(day.getUTCDate() - i); return { id: 'fixture-h-' + String(i).padStart(2, '0'), practicaId: 'fixture-p-7', fecha: day.toISOString(), horas: i < 15 ? 1 : 2, descripcion: 'Actividad ' + String(i).padStart(2, '0'), estadoValidacion: i < 15 ? 'PENDIENTE' : i < 21 ? 'RECHAZADO' : 'VALIDADO', revision: 0, observacion: i >= 15 && i < 21 ? 'Corrige la actividad' : '' }; });
   const hourTotals = key => hourRows.filter(r => r.estadoValidacion === key).reduce((sum, r) => sum + r.horas, 0);
   const tasks = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-k-' + i, aulaId: classroom.id, titulo: 'Informe ' + String(i).padStart(3, '0'), resumen: 'Resumen de la tarea ' + i, fechaLimite: null, createdAt: date, revision: i % 3, entregas: i }));
+  const adminAulas = aulas.map((a, i) => ({ ...a, descripcion: 'Aula aislada ' + i, estado: i < 30 ? 'ACTIVA' : 'CONCLUIDA', inscritos: i === 0 ? 30 : i % 6 }));
+  const adminUsers = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-u-' + i, nombres: 'Usuario ' + String(i).padStart(3, '0'), apellidos: 'Prueba', email: 'usuario' + i + '@unsa.edu.pe', role: i < 4 ? 'PROFESOR' : 'ALUMNO', createdAt: date }));
+  const adminStudents = students.map((s, i) => ({ alumnoId: s.alumnoId, alumnoNombre: s.alumnoNombre, email: s.alumnoEmail, inscrito: i < 30 }));
+  const adminReports = adminAulas.map(a => ({ aulaId: a.id, aulaNombre: a.nombre, periodo: a.periodo, profesorNombre: a.profesorNombre, estado: a.estado, inscritos: a.inscritos, promedioNotas: a.id.endsWith('0') ? null : 16, asistenciaPct: a.id.endsWith('1') ? null : 85 }));
+  const adminResumen = { totalAlumnos: 45, totalProfesores: 4, totalAulas: 45, aulasActivas: 30, practicasEnCurso: 10, practicasCerradas: 5, horasPromedio: 8 };
+  const adminAudits = [{ id: 'fixture-aud-att', userNombre: 'Admin Prueba', accion: 'ASISTENCIA_ACADEMICA', detalle: JSON.stringify({ aulaId: 'fixture-a-0', fecha: '2026-10-20', antes: [{ practicanteId: 'fixture-u-1', presente: true }, { practicanteId: 'fixture-u-2', presente: false }], despues: [{ practicanteId: 'fixture-u-1', presente: false }, { practicanteId: 'fixture-u-2', presente: true }], conservadosFueraDelPadron: [] }), fecha: '2026-10-21T12:00:00Z', aulaNombre: 'Aula de prueba 000', estudiantes: [{ id: 'fixture-u-1', nombre: 'Practicante 001' }, { id: 'fixture-u-2', nombre: 'Practicante 002' }] },
+    ...Array.from({ length: 14 }, (_, i) => ({ id: 'fixture-aud-att-' + i, userNombre: 'Admin Prueba', accion: 'ASISTENCIA_ACADEMICA', detalle: JSON.stringify({ aulaId: 'fixture-a-1', fecha: '2026-09-' + String(10 + i).padStart(2, '0'), antes: [], despues: [] }), fecha: '2026-10-2' + (i % 9) + 'T12:00:00Z', aulaNombre: 'Aula de prueba 001', estudiantes: [] })),
+    ...Array.from({ length: 20 }, (_, i) => ({ id: 'fixture-aud-admin-' + i, userNombre: 'Admin Prueba', accion: 'ESTADO_AULA', detalle: 'Cambio ' + String(i).padStart(3, '0'), fecha: '2026-10-1' + (i % 9) + 'T12:00:00Z', aulaNombre: null, estudiantes: [] })),
+    ...Array.from({ length: 10 }, (_, i) => ({ id: 'fixture-aud-horas-' + i, userNombre: 'Admin Prueba', accion: 'HORAS_VALIDACION', detalle: 'Validacion ' + String(i).padStart(3, '0'), fecha: '2026-10-0' + (i % 9 + 1) + 'T12:00:00Z', aulaNombre: null, estudiantes: [] }))];
   let failMore = true, failTaskMore = true, failHoursMore = true, denied = false, gradeWrites = 0, reviewWrites = 0;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined });
   async function create(name, fixture = false) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } }), page = await context.newPage(); activePage = page; page.setDefaultTimeout(25000);
     page.on('pageerror', reason => errors.push(reason.message.slice(0, 200)));
@@ -92,6 +101,30 @@ let stage = 'preparar', activePage;
           row.nota = value.nota; row.retroalimentacion = value.retroalimentacion; row.estado = 'CALIFICADA'; return json(200, row);
         }
         if (pathname.includes('/seguimiento/')) return json(404, { detail: 'Ficha aislada para comprobar el destino.' });
+        const adminPage = (pool, extra = {}) => { const size = Number(url.searchParams.get('limite') || 20), start = Number(url.searchParams.get('cursor') || 0); return json(200, { items: pool.slice(start, start + size), total: pool.length, siguiente: start + size < pool.length ? String(start + size) : null, ...extra }); };
+        if (pathname === '/api/v1/admin/capacidades') return json(200, { versionAdministracion: 1 });
+        if (pathname === '/api/v1/admin/usuarios/pagina') {
+          const rol = url.searchParams.get('rol') || 'TODOS';
+          return adminPage(search(adminUsers.filter(u => rol === 'TODOS' || u.role === rol)), { totalDocentes: 4 });
+        }
+        if (pathname === '/api/v1/admin/aulas/pagina') {
+          const estado = url.searchParams.get('estado') || 'TODAS';
+          return adminPage(search(adminAulas.filter(a => estado === 'TODAS' || a.estado === estado)), { aulasActivas: 30 });
+        }
+        if (pathname === '/api/v1/admin/aulas/fixture-a-0') return json(200, adminAulas[0]);
+        if (pathname === '/api/v1/admin/aulas/fixture-a-0/matriculas/pagina') {
+          const estado = url.searchParams.get('estado') || 'TODOS';
+          const pool = adminStudents.filter(s => estado === 'TODOS' || estado === 'MATRICULADOS' && s.inscrito || estado === 'SIN_MATRICULA' && !s.inscrito);
+          return adminPage(search(pool), { aulaId: 'fixture-a-0', aulaNombre: adminAulas[0].nombre, revision: 'f'.repeat(64), matriculados: 30 });
+        }
+        if (pathname === '/api/v1/admin/reportes/pagina') {
+          const estado = url.searchParams.get('estado') || 'TODAS';
+          return adminPage(search(adminReports.filter(a => estado === 'TODAS' || a.estado === estado)), { resumen: adminResumen });
+        }
+        if (pathname === '/api/v1/admin/auditoria/pagina') {
+          const categoria = url.searchParams.get('categoria') || 'TODAS';
+          return adminPage(search(adminAudits.filter(a => categoria === 'TODAS' || categoria === 'ASISTENCIA' && a.accion === 'ASISTENCIA_ACADEMICA' || categoria === 'HORAS' && a.accion.startsWith('HORAS_') || categoria === 'ADMIN' && a.accion !== 'ASISTENCIA_ACADEMICA' && !a.accion.startsWith('HORAS_'))));
+        }
       }
       if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method())) { writes.push(request.method() + ' ' + pathname); return route.abort(); }
       return route.continue();
@@ -211,8 +244,67 @@ let stage = 'preparar', activePage;
     await admin.goto(web + '/docencia', { waitUntil: 'networkidle' }); await heading(admin, 'Mis aulas · Docencia');
     await admin.getByLabel('Buscar aula', { exact: true }).fill(aula.nombre); await admin.getByRole('button', { name: new RegExp('^' + aula.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).waitFor();
     assert.ok(requests.some(r => !r.fixture && r.role === 'admin' && r.path === '/api/v1/equipo/aulas/pagina'));
-    checks.push('Administración consulta aulas y búsqueda real por su rol'); await admin.context().close();
-    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas');
+    await admin.goto(web + '/administracion', { waitUntil: 'networkidle' }); await heading(admin, 'Administración académica');
+    await admin.getByText(/^\d+ de \d+ aulas$/).waitFor();
+    await button(admin, 'Directorio de usuarios').click(); await admin.getByText(/^\d+ de \d+ usuarios$/).waitFor();
+    await admin.goto(web + '/reportes', { waitUntil: 'networkidle' }); await heading(admin, 'Reporte institucional');
+    await admin.getByText('Comunidad académica', { exact: true }).waitFor(); await admin.getByText(/^\d+ de \d+ aulas$/).waitFor();
+    await admin.goto(web + '/auditoria', { waitUntil: 'networkidle' }); await heading(admin, 'Auditoría de actividad');
+    await admin.getByText(/^\d+ de \d+ registros$/).waitFor();
+    for (const path of ['/api/v1/admin/usuarios/pagina', '/api/v1/admin/aulas/pagina', '/api/v1/admin/reportes/pagina', '/api/v1/admin/auditoria/pagina']) assert.ok(requests.some(r => !r.fixture && r.role === 'admin' && r.path === path), 'sin lectura real: ' + path);
+    checks.push('Administración real: aulas, directorio, reporte y auditoría por páginas'); await admin.context().close();
+
+    stage = 'administracion aislada'; const adminFixture = await create('admin', true);
+    await adminFixture.goto(web + '/administracion', { waitUntil: 'networkidle' }); await heading(adminFixture, 'Administración académica');
+    await counter(adminFixture, '20 de 45 aulas'); await counter(adminFixture, '45 aulas · 30 activas');
+    await more(adminFixture, '40 de 45 aulas'); await more(adminFixture, '45 de 45 aulas');
+    await adminFixture.getByLabel('Buscar aula en administración').fill('Aula de prueba 044'); await counter(adminFixture, '1 de 1 aulas');
+    await adminFixture.getByLabel('Buscar aula en administración').fill(''); await counter(adminFixture, '20 de 45 aulas');
+    await button(adminFixture, 'Aulas activas').click(); await counter(adminFixture, '20 de 30 aulas');
+    await button(adminFixture, 'Aulas concluidas').click(); await counter(adminFixture, '15 de 15 aulas');
+    await button(adminFixture, 'Directorio de usuarios').click(); await counter(adminFixture, '20 de 45 usuarios'); await counter(adminFixture, '45 usuarios · 4 docentes');
+    await more(adminFixture, '40 de 45 usuarios');
+    await adminFixture.getByLabel('Buscar usuario').fill('Usuario 044'); await counter(adminFixture, '1 de 1 usuarios');
+    await adminFixture.getByLabel('Buscar usuario').fill(''); await counter(adminFixture, '20 de 45 usuarios');
+    await button(adminFixture, 'Docente').click(); await counter(adminFixture, '4 de 4 usuarios');
+    assert.ok(requests.some(r => r.fixture && r.path === '/api/v1/admin/usuarios/pagina' && r.query.includes('limite=40') && r.query.includes('rol=PROFESOR')));
+    checks.push('Administración aislada: aulas y directorio 20→40→45, totales globales, búsqueda y filtros');
+
+    await adminFixture.goto(web + '/reportes', { waitUntil: 'networkidle' }); await heading(adminFixture, 'Reporte institucional');
+    await counter(adminFixture, '45 alumnos · 4 docentes'); await counter(adminFixture, '45 aulas · 30 activas'); await counter(adminFixture, '20 de 45 aulas');
+    await more(adminFixture, '40 de 45 aulas');
+    await button(adminFixture, 'Solo concluidas').click(); await counter(adminFixture, '15 de 15 aulas');
+    await button(adminFixture, 'Solo activas').click(); await counter(adminFixture, '20 de 30 aulas');
+    await button(adminFixture, 'Todas las aulas').click(); await counter(adminFixture, '20 de 45 aulas');
+    await adminFixture.getByLabel('Buscar aula en el reporte').fill('Aula de prueba 044'); await counter(adminFixture, '1 de 1 aulas');
+    checks.push('Reporte aislado: resumen global exacto, aulas paginadas, búsqueda y filtros');
+
+    await adminFixture.goto(web + '/auditoria', { waitUntil: 'networkidle' }); await heading(adminFixture, 'Auditoría de actividad');
+    await counter(adminFixture, '20 de 45 registros'); await more(adminFixture, '40 de 45 registros'); await more(adminFixture, '45 de 45 registros');
+    await button(adminFixture, 'Asistencia').click(); await counter(adminFixture, '15 de 15 registros');
+    await adminFixture.getByText('Asistencia del 2026-10-20', { exact: true }).waitFor();
+    await button(adminFixture, 'Ver cambios').first().click();
+    await adminFixture.getByText('Practicante 001', { exact: true }).waitFor();
+    await adminFixture.getByText('Antes: Presente', { exact: true }).waitFor(); await adminFixture.getByText('Después: Ausente', { exact: true }).waitFor();
+    await button(adminFixture, 'Horas').click(); await counter(adminFixture, '10 de 10 registros');
+    await button(adminFixture, 'Administración').click(); await counter(adminFixture, '20 de 20 registros');
+    await button(adminFixture, 'Toda la actividad').click(); await counter(adminFixture, '20 de 45 registros');
+    await adminFixture.getByLabel('Buscar responsable, acción o detalle').fill('Cambio 019'); await counter(adminFixture, '1 de 1 registros');
+    await adminFixture.getByLabel('Buscar responsable, acción o detalle').fill(''); await counter(adminFixture, '20 de 45 registros');
+    checks.push('Auditoría aislada 20→40→45 con categorías, búsqueda y detalle de asistencia con nombres del servidor');
+
+    await adminFixture.goto(web + '/administrar-aula?aulaId=fixture-a-0', { waitUntil: 'networkidle' }); await heading(adminFixture, 'Gestionar aula');
+    await adminFixture.getByText('Docente: Docente de prueba', { exact: true }).waitFor(); await counter(adminFixture, 'Matrículas · 30 estudiantes'); await counter(adminFixture, '20 de 45 estudiantes');
+    await more(adminFixture, '40 de 45 estudiantes'); await more(adminFixture, '45 de 45 estudiantes');
+    await button(adminFixture, 'Matriculados').click(); await counter(adminFixture, '20 de 30 estudiantes');
+    await button(adminFixture, 'Sin matrícula').click(); await counter(adminFixture, '15 de 15 estudiantes');
+    await button(adminFixture, 'Todos los estudiantes').click(); await counter(adminFixture, '20 de 45 estudiantes');
+    await adminFixture.getByLabel('Buscar estudiante para matrícula').fill('Practicante 044'); await counter(adminFixture, '1 de 1 estudiantes');
+    await adminFixture.getByLabel('Buscar estudiante para matrícula').fill(''); await counter(adminFixture, '20 de 45 estudiantes');
+    for (const width of [360, 390, 430]) { await adminFixture.setViewportSize({ width, height: 844 }); assert.equal(await adminFixture.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false); }
+    await adminFixture.setViewportSize({ width: 390, height: 844 });
+    checks.push('Ficha de aula aislada: detalle exacto y padrón 20→40→45 con búsqueda, filtros y tamaños móviles'); await adminFixture.context().close();
+    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas' || ['/api/v1/admin/usuarios', '/api/v1/admin/aulas', '/api/v1/admin/auditoria', '/api/v1/admin/reportes'].includes(r.path) || /^\/api\/v1\/admin\/aulas\/[^/]+\/matriculas$/.test(r.path));
     assert.deepEqual(obsolete, []); assert.deepEqual(errors, []); assert.deepEqual(writes, []); assert.deepEqual(foreignApis, []);
     const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, isolatedReviewWrites: reviewWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
     fs.writeFileSync('.expo/dev/personal28-verificacion.json', JSON.stringify(report, null, 2)); console.log(JSON.stringify(report, null, 2));

@@ -1,8 +1,11 @@
 import { ApiError, request, type Session } from './api';
 import { validAttendanceDate } from './asistencia';
-export type AuditEntry = { id: string; userNombre: string; accion: string; detalle: string; fecha: string };
+import { page, type Page } from './module-pages';
+export type EstudianteAudit = { id: string; nombre: string };
+export type AuditEntry = { id: string; userNombre: string; accion: string; detalle: string; fecha: string; aulaNombre: string | null; estudiantes: EstudianteAudit[] };
+export type AuditFilter = 'TODAS' | 'ASISTENCIA' | 'HORAS' | 'ADMIN';
+export type AuditPage = Page<AuditEntry>;
 export type AttendanceAudit = { aulaId: string; fecha: string; antes: { practicanteId: string; presente: boolean }[]; despues: { practicanteId: string; presente: boolean }[]; conserved: number };
-export type AuditData = { entries: AuditEntry[]; aulas: Record<string, string>; users: Record<string, string>; incompleteNames: boolean };
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const text = (v: unknown): v is string => typeof v === 'string';
 const nonempty = (v: unknown): v is string => text(v) && !!v.trim();
@@ -18,22 +21,16 @@ export function attendanceAudit(entry: AuditEntry): AttendanceAudit | null {
 export function auditAction(action: string) {
   return ({ HORAS_REGISTRO: 'Registro de horas', HORAS_RECHAZO: 'Rechazo de horas', HORAS_CORRECCION: 'Corrección de horas', HORAS_VALIDACION: 'Validación de horas', ASISTENCIA_ACADEMICA: 'Cambio de asistencia', MATRICULA: 'Matrícula de estudiante', RETIRO_MATRICULA: 'Retiro de matrícula', ESTADO_AULA: 'Cambio de estado del aula', ASIGNAR_PROFESOR: 'Asignación de docente', CAMBIO_ROL: 'Cambio de rol' } as Record<string, string>)[action] ?? action.replaceAll('_', ' ');
 }
-function names(value: unknown, users: boolean): Record<string, string> | null {
-  if (!Array.isArray(value) || !value.every(v => object(v) && nonempty(v.id) && (users ? text(v.nombres) && text(v.apellidos) : nonempty(v.nombre)))) return null;
-  return Object.fromEntries(value.map(v => [v.id, users ? `${v.nombres} ${v.apellidos}`.trim() : v.nombre]));
+function estudiante(v: unknown): EstudianteAudit {
+  if (!object(v) || !nonempty(v.id) || !text(v.nombre)) throw new ApiError(502, 'El registro de auditoría no es compatible. Actualiza la consulta.');
+  return { id: v.id, nombre: v.nombre };
 }
-export async function getAuditData(session: Session, signal: AbortSignal): Promise<AuditData> {
+function entry(v: unknown): AuditEntry {
+  if (!object(v) || !nonempty(v.id) || !nonempty(v.userNombre) || !nonempty(v.accion) || !text(v.detalle) || !text(v.fecha) || !Number.isFinite(Date.parse(v.fecha)) || !(v.aulaNombre === null || nonempty(v.aulaNombre)) || !Array.isArray(v.estudiantes)) throw new ApiError(502, 'El registro de auditoría no es compatible. Actualiza la consulta.');
+  return { id: v.id, userNombre: v.userNombre, accion: v.accion, detalle: v.detalle, fecha: v.fecha, aulaNombre: v.aulaNombre as string | null, estudiantes: v.estudiantes.map(estudiante) };
+}
+export async function getAuditPage(session: Session, categoria: AuditFilter, q: string, signal: AbortSignal, cursor?: string | null): Promise<AuditPage> {
   if (session.user.role !== 'ADMIN') throw new ApiError(403, 'La auditoría está disponible para Administración.');
-  const [audit, aulasResult, usersResult] = await Promise.allSettled([
-    request<unknown>('/admin/auditoria', session.token, undefined, signal),
-    request<unknown>('/aulas', session.token, undefined, signal),
-    request<unknown>('/admin/usuarios', session.token, undefined, signal),
-  ]);
-  if (audit.status === 'rejected') throw audit.reason;
-  for (const lookup of [aulasResult, usersResult]) if (lookup.status === 'rejected' && lookup.reason instanceof ApiError && lookup.reason.status === 401) throw lookup.reason;
-  const data = audit.value;
-  if (!Array.isArray(data) || data.length > 200 || !data.every(v => object(v) && nonempty(v.id) && nonempty(v.userNombre) && nonempty(v.accion) && text(v.detalle) && text(v.fecha) && Number.isFinite(Date.parse(v.fecha))) || new Set(data.map(v => v.id)).size !== data.length) throw new ApiError(502, 'El registro de auditoría no es compatible. Actualiza la consulta.');
-  const aulas = aulasResult.status === 'fulfilled' ? names(aulasResult.value, false) : null;
-  const users = usersResult.status === 'fulfilled' ? names(usersResult.value, true) : null;
-  return { entries: data as AuditEntry[], aulas: aulas ?? {}, users: users ?? {}, incompleteNames: !aulas || !users };
+  const query = new URLSearchParams({ limite: '20', categoria, q: q.trim(), ...(cursor ? { cursor } : {}) });
+  return page(await request<unknown>(`/admin/auditoria/pagina?${query}`, session.token, undefined, signal), entry);
 }
