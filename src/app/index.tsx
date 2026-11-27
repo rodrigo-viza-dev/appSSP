@@ -19,9 +19,9 @@ export default function LoginScreen() {
   const [googlePassword, setGooglePassword] = useState('');
   const [message, setMessage] = useState('');
   const [ready, setReady] = useState(false);
-  const [recovery, setRecovery] = useState(false), [access, setAccess] = useState({ google: false, recuperacion: false });
+  const [recovery, setRecovery] = useState(false), [access, setAccess] = useState<{ google: boolean; recuperacion: boolean; contrasenaRoles?: string[] | null }>({ google: false, recuperacion: false });
   useEffect(() => { setReady(true); }, []);
-  useEffect(() => { const controller = new AbortController(); void request<{ google: boolean; recuperacion: boolean }>('/auth/capacidades', undefined, undefined, controller.signal).then(v => { if (!controller.signal.aborted) setAccess(v); }).catch(() => {}); return () => controller.abort(); }, []);
+  useEffect(() => { const controller = new AbortController(); void request<{ google: boolean; recuperacion: boolean; contrasenaRoles?: string[] | null }>('/auth/capacidades', undefined, undefined, controller.signal).then(v => { if (!controller.signal.aborted) setAccess(v); }).catch(() => {}); return () => controller.abort(); }, []);
   function signIn() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setMessage('Ingresa un correo válido.'); return; }
     if (!password) { setMessage('Ingresa tu contraseña.'); return; }
@@ -49,6 +49,7 @@ export default function LoginScreen() {
         <Button title="Confirmar vínculo con Google" disabled={busy || !googlePassword} onPress={() => { void linkGoogle(googlePassword); setGooglePassword(''); }} />
         <Button title="Cancelar vínculo con Google" secondary disabled={busy} onPress={() => { cancelGoogleLink(); setGooglePassword(''); }} />
       </View>}
+      {!!access.contrasenaRoles?.length && <Text style={typography.body}>{access.contrasenaRoles.length === 1 && access.contrasenaRoles[0] === 'SUPERVISOR' ? 'Supervisores de centros de prácticas: ingresen con el correo y la contraseña que les dio la coordinación.' : 'El ingreso con contraseña está limitado a algunos roles.'}</Text>}
       <Field label="Correo de tu cuenta SSP" value={email} editable={ready && !busy} onChangeText={setEmail} placeholder="alumno@unsa.edu.pe" keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" />
       <Field label="Contraseña" value={password} editable={ready && !busy} onChangeText={setPassword} placeholder="Ingresa tu contraseña" secureTextEntry autoComplete="current-password" />
       {authMessage !== '' && <Text accessibilityRole="alert" style={typography.error}>{authMessage}</Text>}
