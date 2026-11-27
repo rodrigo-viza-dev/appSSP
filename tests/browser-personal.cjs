@@ -45,7 +45,9 @@ let stage = 'preparar', activePage;
     ...Array.from({ length: 10 }, (_, i) => ({ id: 'fixture-aud-horas-' + i, userNombre: 'Admin Prueba', accion: 'HORAS_VALIDACION', detalle: 'Validacion ' + String(i).padStart(3, '0'), fecha: '2026-10-0' + (i % 9 + 1) + 'T12:00:00Z', aulaNombre: null, estudiantes: [] }))];
   const communityAnnouncements = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-an-' + String(i).padStart(3, '0'), aulaId: classroom.id, titulo: 'Anuncio ' + String(i).padStart(3, '0'), autorNombre: 'Docente de prueba', fijado: i < 17, fecha: date, resumen: 'Resumen del anuncio ' + i }));
   const communityThreads = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-fh-' + String(i).padStart(3, '0'), aulaId: classroom.id, autorNombre: 'Practicante 000', titulo: 'Tema ' + String(i).padStart(3, '0'), respuestas: i, fecha: date }));
-  let failMore = true, failTaskMore = true, failHoursMore = true, denied = false, gradeWrites = 0, reviewWrites = 0;
+  const contactRows = students.map((st, i) => ({ userId: st.alumnoId, nombre: st.alumnoNombre, email: st.alumnoEmail, aulaId: classroom.id, aulaNombre: classroom.nombre, noLeidos: i === 3 ? 2 : i === 30 ? 1 : 0 }));
+  const directRows = peer => Array.from({ length: 45 }, (_, i) => { const mio = i % 2 === 1; return { id: 'fixture-dm-' + String(44 - i).padStart(3, '0'), aulaId: classroom.id, remitenteId: mio ? teacherId : peer, destinatarioId: mio ? peer : teacherId, remitenteNombre: mio ? 'Docente de prueba' : 'Practicante 003', texto: 'Mensaje ' + String(44 - i).padStart(3, '0'), mio, leido: mio || i > 3, fecha: date }; });
+  let failMore = true, failTaskMore = true, failHoursMore = true, denied = false, gradeWrites = 0, reviewWrites = 0, readWrites = 0;
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined });
   async function create(name, fixture = false) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } }), page = await context.newPage(); activePage = page; page.setDefaultTimeout(25000);
@@ -80,7 +82,22 @@ let stage = 'preparar', activePage;
         if (pathname.startsWith('/api/v1/equipo/aulas/' + classroom.id + '/entregas/')) {
           const row = deliveries.find(d => d.id === pathname.split('/').at(-1)); return row ? json(200, row) : json(404, {});
         }
-        if (pathname === '/api/v1/equipo/practicas/pagina') return slice(search(practices.filter(p => url.searchParams.get('estado') === 'CERRADAS' ? p.estado === 'CERRADA' : url.searchParams.get('estado') === 'ABIERTAS' ? p.estado !== 'CERRADA' : true)));
+        if (pathname === '/api/v1/equipo/practicas/pagina') return slice(search(practices.filter(p => (!url.searchParams.get('alumnoId') || p.practicanteId === url.searchParams.get('alumnoId')) && (!url.searchParams.get('aulaId') || p.aulaId === url.searchParams.get('aulaId'))).filter(p => url.searchParams.get('estado') === 'CERRADAS' ? p.estado === 'CERRADA' : url.searchParams.get('estado') === 'ABIERTAS' ? p.estado !== 'CERRADA' : true)));
+        if (pathname === '/api/v1/mensajes/capacidades') return json(200, { versionMensajes: 1, lecturaExplicita: true });
+        if (pathname === '/api/v1/equipo/aulas/' + classroom.id + '/contactos/pagina') {
+          const pool = search(contactRows).filter(c => url.searchParams.get('sinLeer') !== 'true' || c.noLeidos > 0).map(({ email, ...c }) => c);
+          return slice(pool, { noLeidos: 3 });
+        }
+        if (pathname.startsWith('/api/v1/aulas/' + classroom.id + '/contactos/')) {
+          const row = contactRows.find(c => c.userId === decodeURIComponent(pathname.split('/').at(-1)));
+          if (!row) return json(404, {}); const { email, ...contact } = row; return json(200, contact);
+        }
+        const directMatch = pathname.match(/^\/api\/v1\/aulas\/[^/]+\/mensajes\/([^/]+)\/(pagina|lectura)$/);
+        if (directMatch && directMatch[2] === 'lectura' && request.method() === 'PUT') { readWrites++; return json(200, { mensajeIds: request.postDataJSON().mensajeIds }); }
+        if (directMatch && directMatch[2] === 'pagina') {
+          const rows = directRows(decodeURIComponent(directMatch[1])); const start = Number(url.searchParams.get('cursor') || 0);
+          return json(200, { items: rows.slice(start, start + 20), total: rows.length, siguiente: start + 20 < rows.length ? String(start + 20) : null, noLeidos: rows.filter(r => !r.mio && !r.leido).length });
+        }
         if (pathname === '/api/v1/practicas/capacidades') return json(200, { versionHoras: 2 });
         if (pathname === '/api/v1/equipo/practicas/fixture-p-7') return json(200, practices[7]);
         if (pathname === '/api/v1/equipo/practicas/fixture-p-7/horas/pagina') {
@@ -261,21 +278,46 @@ let stage = 'preparar', activePage;
 
     stage = 'comunidad docente'; const community = await create('profesor', true);
     await community.goto(web + '/comunidad', { waitUntil: 'networkidle' }); await heading(community, 'Comunidad del aula');
-    await counter(community, '20 de 45 anuncios'); await counter(community, '45 anuncios en la consulta');
+    await counter(community, '20 de 45 anuncios');
     await more(community, '40 de 45 anuncios'); await more(community, '45 de 45 anuncios');
     await community.getByLabel('Buscar en el aula').fill('Anuncio 044'); await counter(community, '1 de 1 anuncios');
     await community.getByLabel('Buscar en el aula').fill(''); await counter(community, '20 de 45 anuncios');
-    await button(community, 'Mostrar solo fijados').click(); await counter(community, '17 de 17 anuncios');
-    await button(community, 'Mostrar todos los anuncios').click(); await counter(community, '20 de 45 anuncios');
-    await button(community, 'Ver anuncio completo').first().click(); await community.getByText('Contenido completo del Anuncio', { exact: false }).waitFor();
-    await button(community, 'Foros').click(); await counter(community, '20 de 45 temas'); await counter(community, '45 temas en la consulta');
+    await button(community, 'Fijados').click(); await counter(community, '17 de 17 anuncios');
+    await button(community, 'Todos').click(); await counter(community, '20 de 45 anuncios');
+    await community.getByRole('button', { name: /^Anuncio 000/ }).click(); await community.getByText('Contenido completo del Anuncio 000.', { exact: true }).waitFor();
+    await button(community, 'Foros').click(); await counter(community, '20 de 45 temas');
     await more(community, '40 de 45 temas'); await more(community, '45 de 45 temas');
     await community.getByLabel('Buscar en el aula').fill('Tema 044'); await counter(community, '1 de 1 temas');
     await community.getByLabel('Buscar en el aula').fill(''); await counter(community, '20 de 45 temas');
-    await button(community, 'Abrir conversación: Tema 000').click(); await heading(community, 'Conversación del aula');
+    await community.getByRole('button', { name: /^Tema 000/ }).click(); await heading(community, 'Conversación del aula');
     await counter(community, '20 de 45 respuestas'); await community.getByText('Respuesta 044', { exact: true }).waitFor();
     await more(community, '40 de 45 respuestas'); await more(community, '45 de 45 respuestas'); await community.getByText('Respuesta 000', { exact: true }).waitFor();
+    assert.ok(await community.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     checks.push('Comunidad docente: anuncios, foros y respuestas 20→40→45 con búsqueda en servidor, fijados, detalle completo y contexto exacto del tema'); await community.context().close();
+
+    stage = 'mensajes docente'; const inbox = await create('profesor', true);
+    await inbox.goto(web + '/mensajes', { waitUntil: 'networkidle' }); await heading(inbox, 'Mensajes');
+    await counter(inbox, '20 de 45 alumnos'); await counter(inbox, '3 mensajes sin leer');
+    await more(inbox, '40 de 45 alumnos'); await more(inbox, '45 de 45 alumnos');
+    await inbox.getByLabel('Buscar alumno').fill('Practicante 044'); await counter(inbox, '1 de 1 alumnos');
+    await inbox.getByLabel('Buscar alumno').fill(''); await counter(inbox, '20 de 45 alumnos');
+    await button(inbox, 'Sin leer').click(); await counter(inbox, '2 de 2 alumnos');
+    await inbox.getByRole('button', { name: /^Practicante 003/ }).click(); await heading(inbox, 'Practicante 003');
+    await counter(inbox, '20 de 45 mensajes'); await inbox.getByText('Mensaje 044', { exact: true }).waitFor();
+    await counter(inbox, '2 mensajes recibidos sin leer');
+    await button(inbox, 'Cargar mensajes anteriores').click(); await counter(inbox, '40 de 45 mensajes');
+    await button(inbox, 'Marcar recibidos cargados como leídos (2)').click(); await counter(inbox, 'Lectura confirmada por el servidor.');
+    await counter(inbox, 'Sin mensajes recibidos por leer');
+    checks.push('Mensajes docente: contactos 20→40→45 con búsqueda y filtro sin leer en servidor, contacto exacto, conversación por páginas y lectura confirmada'); await inbox.context().close();
+
+    stage = 'expedientes personal'; const records = await create('profesor', true);
+    await records.goto(web + '/expedientes', { waitUntil: 'networkidle' }); await heading(records, 'Expedientes de prácticas');
+    await counter(records, '20 de 45 prácticas'); await more(records, '40 de 45 prácticas'); await more(records, '45 de 45 prácticas');
+    await button(records, 'Cerradas').click(); await counter(records, '7 de 7 prácticas');
+    await button(records, 'Todas').click(); await records.getByLabel('Buscar práctica').fill('Practicante 044'); await counter(records, '1 de 1 prácticas');
+    await records.goto(web + '/expedientes?aulaId=' + classroom.id + '&alumnoId=fixture-u-12', { waitUntil: 'networkidle' }); await counter(records, '1 de 1 prácticas');
+    await records.getByText('Mostrando las prácticas del seguimiento seleccionado.', { exact: true }).waitFor();
+    checks.push('Expedientes del personal: prácticas 20→40→45 con filtros, búsqueda en servidor y alcance exacto desde seguimiento'); await records.context().close();
 
     stage = 'administracion real'; const admin = await create('admin');
     await admin.goto(web + '/docencia', { waitUntil: 'networkidle' }); await heading(admin, 'Mis aulas · Docencia');
@@ -341,9 +383,9 @@ let stage = 'preparar', activePage;
     for (const width of [360, 390, 430]) { await adminFixture.setViewportSize({ width, height: 844 }); assert.equal(await adminFixture.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false); }
     await adminFixture.setViewportSize({ width: 390, height: 844 });
     checks.push('Ficha de aula aislada: detalle exacto y padrón 20→40→45 con búsqueda, filtros y tamaños móviles'); await adminFixture.context().close();
-    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas' || ['/api/v1/admin/usuarios', '/api/v1/admin/aulas', '/api/v1/admin/auditoria', '/api/v1/admin/reportes'].includes(r.path) || /^\/api\/v1\/admin\/aulas\/[^/]+\/matriculas$/.test(r.path) || /^\/api\/v1\/aulas\/[^/]+\/(anuncios|foros)$/.test(r.path) || /^\/api\/v1\/foros\/[^/]+\/mensajes$/.test(r.path));
+    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas' || ['/api/v1/admin/usuarios', '/api/v1/admin/aulas', '/api/v1/admin/auditoria', '/api/v1/admin/reportes'].includes(r.path) || /^\/api\/v1\/admin\/aulas\/[^/]+\/matriculas$/.test(r.path) || /^\/api\/v1\/aulas\/[^/]+\/(anuncios|foros)$/.test(r.path) || /^\/api\/v1\/foros\/[^/]+\/mensajes$/.test(r.path) || /^\/api\/v1\/aulas\/[^/]+\/(contactos|mensajes\/[^/]+)$/.test(r.path));
     assert.deepEqual(obsolete, []); assert.deepEqual(errors, []); assert.deepEqual(writes, []); assert.deepEqual(foreignApis, []);
-    const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, isolatedReviewWrites: reviewWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
+    const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, isolatedReviewWrites: reviewWrites, isolatedReadWrites: readWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
     fs.writeFileSync('.expo/dev/personal28-verificacion.json', JSON.stringify(report, null, 2)); console.log(JSON.stringify(report, null, 2));
   } catch (error) { if (activePage && !activePage.isClosed()) await activePage.screenshot({ path: '.expo/dev/personal28-revision-pendiente.png' }).catch(() => {}); throw error; }
   finally { await browser.close(); }

@@ -59,9 +59,12 @@ function parsePractice(v: unknown, estado: string) {
     || estado === 'ABIERTAS' && v.estado === 'CERRADA' || estado === 'CERRADAS' && v.estado !== 'CERRADA') invalid();
   return v as PracticaExpediente;
 }
-export async function getPracticePage(s: Session, estado: string, q: string, signal: AbortSignal, cursor?: string | null) {
+export async function getPracticePage(s: Session, estado: string, q: string, signal: AbortSignal, cursor?: string | null, scope: { aulaId?: string; alumnoId?: string } = {}) {
   personal(s, true);
-  return page(await request(`/equipo/practicas/pagina?${query(cursor, q, { estado })}`, s.token, undefined, signal), v => parsePractice(v, estado));
+  const extra = { estado, ...(scope.aulaId ? { aulaId: scope.aulaId } : {}), ...(scope.alumnoId ? { alumnoId: scope.alumnoId } : {}) };
+  const result = page(await request(`/equipo/practicas/pagina?${query(cursor, q, extra)}`, s.token, undefined, signal), v => parsePractice(v, estado));
+  if (result.items.some(p => scope.aulaId && p.aulaId !== scope.aulaId || scope.alumnoId && p.practicanteId !== scope.alumnoId)) invalid();
+  return result;
 }
 export async function getPracticeDetail(s: Session, id: string, signal: AbortSignal): Promise<PracticaExpediente> {
   personal(s, true);

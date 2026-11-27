@@ -22,19 +22,28 @@ export async function getContactos(s: Session, aulaId: string, signal: AbortSign
   if (!Array.isArray(v) || !v.every(c => object(c) && text(c.userId) && c.userId !== s.user.id && c.aulaId === aulaId && text(c.nombre) && text(c.aulaNombre) && typeof c.noLeidos === 'number' && Number.isSafeInteger(c.noLeidos) && c.noLeidos >= 0) || new Set(v.map(c => c.userId)).size !== v.length) invalid();
   return v as Contacto[];
 }
-export async function getChatContext(s: Session, aulaId: string, peerId: string, signal: AbortSignal) {
-  const [aulas, contacts] = await Promise.all([getAulasMensajes(s, signal), getContactos(s, aulaId, signal)]);
-  const aula = aulas.find(a => a.id === aulaId), contacto = contacts.find(c => c.userId === peerId);
-  if (!aula || !contacto) throw new ApiError(404, 'El contacto no está disponible en esta aula.');
-  return { aula, contacto };
+function contact(c: unknown, s: Session, aulaId: string): Contacto {
+  if (!object(c) || !text(c.userId) || c.userId === s.user.id || c.aulaId !== aulaId || !text(c.nombre) || !text(c.aulaNombre) || typeof c.noLeidos !== 'number' || !Number.isSafeInteger(c.noLeidos) || c.noLeidos < 0) invalid();
+  return { userId: c.userId, nombre: c.nombre, aulaId: c.aulaId, aulaNombre: c.aulaNombre, noLeidos: c.noLeidos };
 }
-export async function getMensajes(s: Session, aulaId: string, peerId: string, signal: AbortSignal): Promise<Mensaje[]> {
+export type ContactoPagina = Contacto & { id: string };
+export type ContactPage = { items: ContactoPagina[]; total: number; siguiente: string | null; noLeidos: number };
+export async function getContactPage(s: Session, aulaId: string, q: string, sinLeer: boolean, signal: AbortSignal, cursor?: string | null): Promise<ContactPage> {
+  if (s.user.role !== 'PROFESOR') throw new ApiError(403, 'La lista de contactos por páginas corresponde al docente responsable.');
+  const params = new URLSearchParams({ limite: '20', q: q.trim(), sinLeer: String(sinLeer), ...(cursor ? { cursor } : {}) });
+  const v = await request<unknown>(`/equipo/aulas/${encodeURIComponent(aulaId)}/contactos/pagina?${params}`, s.token, undefined, signal);
+  if (!object(v) || !Array.isArray(v.items) || !Number.isSafeInteger(v.total) || !Number.isSafeInteger(v.noLeidos) || !(v.siguiente === null || typeof v.siguiente === 'string')) invalid();
+  const items = v.items.map(row => ({ ...contact(row, s, aulaId), id: (row as Record<string, unknown>).userId as string }));
+  if (new Set(items.map(c => c.id)).size !== items.length || items.length > Number(v.total)) invalid();
+  return { items, total: Number(v.total), siguiente: v.siguiente as string | null, noLeidos: Number(v.noLeidos) };
+}
+export async function getChatContext(s: Session, aulaId: string, peerId: string, signal: AbortSignal) {
   member(s);
-  const v = await request<unknown>(`/aulas/${encodeURIComponent(aulaId)}/mensajes/${encodeURIComponent(peerId)}`, s.token, undefined, signal);
-  if (!Array.isArray(v)) invalid();
-  const rows = v.map(m => parse(m, s, aulaId, peerId));
-  if (new Set(rows.map(m => m.id)).size !== rows.length) invalid();
-  return rows;
+  if (!peerId.trim()) throw new ApiError(400, 'Abre la conversación desde tus contactos del aula.');
+  const [aulas, raw] = await Promise.all([getAulasMensajes(s, signal), request<unknown>(`/aulas/${encodeURIComponent(aulaId)}/contactos/${encodeURIComponent(peerId)}`, s.token, undefined, signal)]);
+  const aula = aulas.find(a => a.id === aulaId), contacto = contact(raw, s, aulaId);
+  if (!aula || contacto.userId !== peerId) throw new ApiError(404, 'El contacto no está disponible en esta aula.');
+  return { aula, contacto };
 }
 export async function enviarMensaje(s: Session, aula: AulaComunidad, peerId: string, values: Record<string, string>, solicitudId: string, signal: AbortSignal) {
   member(s);
