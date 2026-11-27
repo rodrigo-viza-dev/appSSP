@@ -38,7 +38,7 @@ export default function LoginScreen() {
     <Screen>
       <View style={{ gap: 8 }}><Text style={typography.title}>Bienvenido a tus prácticas</Text><Text style={typography.body}>Tu experiencia profesional, paso a paso.</Text></View>
       <View style={s.environment}>
-        <Text style={s.environmentTitle}>{PRESENTATION_VERSION ? 'Avance de presentación' : IS_LOCAL_API ? 'Entorno de pruebas locales' : 'Acceso a cuenta SSP'}</Text>
+        <Text style={s.environmentTitle}>{PRESENTATION_VERSION ? 'Versión de revisión' : IS_LOCAL_API ? 'Entorno de pruebas locales' : 'Acceso a cuenta SSP'}</Text>
         <Text style={typography.body}>{PRESENTATION_VERSION ? 'Datos ficticios. Ingresa con las cuentas de revisión incluidas en la entrega.' : IS_LOCAL_API ? 'En el formulario SSP usa una cuenta ficticia de pruebas. Para el acceso institucional utiliza el botón de Google cuando esté disponible.' : 'Usa una cuenta registrada en este servidor. Las cuentas de pruebas locales pertenecen a otro entorno.'}</Text>
         <Text selectable style={s.environmentUrl}>{PRESENTATION_VERSION ? `Versión ${PRESENTATION_VERSION}` : API_URL}</Text>
       </View>
