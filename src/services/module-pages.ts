@@ -16,8 +16,8 @@ export function page<T extends { id: string }>(v: unknown, parse: (row: unknown)
   return { items, total: Number(v.total), siguiente: v.siguiente as string | null, ...(v.noLeidos === undefined ? {} : { noLeidos: Number(v.noLeidos) }) };
 }
 const query = (cursor?: string | null, extra: Record<string, string> = {}) => new URLSearchParams({ limite: '20', ...extra, ...(cursor ? { cursor } : {}) }).toString();
-export async function getAnnouncementPage(s: Session, aulaId: string, pinned: boolean, signal: AbortSignal, cursor?: string | null) {
-  return page(await request(`/aulas/${encodeURIComponent(aulaId)}/anuncios/pagina?${query(cursor, { fijados: String(pinned) })}`, s.token, undefined, signal), v => {
+export async function getAnnouncementPage(s: Session, aulaId: string, pinned: boolean, signal: AbortSignal, cursor?: string | null, q = '') {
+  return page(await request(`/aulas/${encodeURIComponent(aulaId)}/anuncios/pagina?${query(cursor, { fijados: String(pinned), q })}`, s.token, undefined, signal), v => {
     if (!object(v) || !text(v.id) || !v.id || v.aulaId !== aulaId || !text(v.autorNombre) || !text(v.titulo) || !text(v.fecha) || !Number.isFinite(Date.parse(v.fecha)) || typeof v.fijado !== 'boolean' || !text(v.resumen) || v.resumen.length > 180) invalid();
     return v as AnuncioResumen;
   });
@@ -27,8 +27,8 @@ export async function getAnnouncement(s: Session, aulaId: string, id: string, si
   if (value.id !== id) invalid();
   return value;
 }
-export async function getThreadPage(s: Session, aulaId: string, signal: AbortSignal, cursor?: string | null) {
-  return page(await request(`/aulas/${encodeURIComponent(aulaId)}/foros/pagina?${query(cursor)}`, s.token, undefined, signal), v => thread(v, aulaId));
+export async function getThreadPage(s: Session, aulaId: string, signal: AbortSignal, cursor?: string | null, q = '') {
+  return page(await request(`/aulas/${encodeURIComponent(aulaId)}/foros/pagina?${query(cursor, { q })}`, s.token, undefined, signal), v => thread(v, aulaId));
 }
 export async function getThreadContext(s: Session, aulaId: string, id: string, signal: AbortSignal) {
   const [aulas, raw] = await Promise.all([getAulasComunidad(s, signal), request(`/aulas/${encodeURIComponent(aulaId)}/foros/${encodeURIComponent(id)}/detalle`, s.token, undefined, signal)]);

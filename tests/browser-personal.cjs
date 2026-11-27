@@ -43,6 +43,8 @@ let stage = 'preparar', activePage;
     ...Array.from({ length: 14 }, (_, i) => ({ id: 'fixture-aud-att-' + i, userNombre: 'Admin Prueba', accion: 'ASISTENCIA_ACADEMICA', detalle: JSON.stringify({ aulaId: 'fixture-a-1', fecha: '2026-09-' + String(10 + i).padStart(2, '0'), antes: [], despues: [] }), fecha: '2026-10-2' + (i % 9) + 'T12:00:00Z', aulaNombre: 'Aula de prueba 001', estudiantes: [] })),
     ...Array.from({ length: 20 }, (_, i) => ({ id: 'fixture-aud-admin-' + i, userNombre: 'Admin Prueba', accion: 'ESTADO_AULA', detalle: 'Cambio ' + String(i).padStart(3, '0'), fecha: '2026-10-1' + (i % 9) + 'T12:00:00Z', aulaNombre: null, estudiantes: [] })),
     ...Array.from({ length: 10 }, (_, i) => ({ id: 'fixture-aud-horas-' + i, userNombre: 'Admin Prueba', accion: 'HORAS_VALIDACION', detalle: 'Validacion ' + String(i).padStart(3, '0'), fecha: '2026-10-0' + (i % 9 + 1) + 'T12:00:00Z', aulaNombre: null, estudiantes: [] }))];
+  const communityAnnouncements = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-an-' + String(i).padStart(3, '0'), aulaId: classroom.id, titulo: 'Anuncio ' + String(i).padStart(3, '0'), autorNombre: 'Docente de prueba', fijado: i < 17, fecha: date, resumen: 'Resumen del anuncio ' + i }));
+  const communityThreads = Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-fh-' + String(i).padStart(3, '0'), aulaId: classroom.id, autorNombre: 'Practicante 000', titulo: 'Tema ' + String(i).padStart(3, '0'), respuestas: i, fecha: date }));
   let failMore = true, failTaskMore = true, failHoursMore = true, denied = false, gradeWrites = 0, reviewWrites = 0;
   const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined });
   async function create(name, fixture = false) {
@@ -125,6 +127,23 @@ let stage = 'preparar', activePage;
           const categoria = url.searchParams.get('categoria') || 'TODAS';
           return adminPage(search(adminAudits.filter(a => categoria === 'TODAS' || categoria === 'ASISTENCIA' && a.accion === 'ASISTENCIA_ACADEMICA' || categoria === 'HORAS' && a.accion.startsWith('HORAS_') || categoria === 'ADMIN' && a.accion !== 'ASISTENCIA_ACADEMICA' && !a.accion.startsWith('HORAS_'))));
         }
+        if (pathname === '/api/v1/comunicacion/capacidades') return json(200, { versionComunicacion: 1 });
+        if (pathname === '/api/v1/comunicacion/aulas') return json(200, [{ id: classroom.id, nombre: classroom.nombre, periodo: classroom.periodo, estado: 'ACTIVA' }]);
+        if (pathname === '/api/v1/aulas/' + classroom.id + '/anuncios/pagina') {
+          const pinned = url.searchParams.get('fijados') === 'true';
+          return slice(search(communityAnnouncements.filter(a => !pinned || a.fijado)));
+        }
+        if (pathname.startsWith('/api/v1/aulas/' + classroom.id + '/anuncios/') && pathname.endsWith('/detalle')) {
+          const row = communityAnnouncements.find(a => pathname.includes('/' + a.id + '/'));
+          return row ? json(200, { ...row, mensaje: 'Contenido completo del ' + row.titulo + '.' }) : json(404, {});
+        }
+        if (pathname === '/api/v1/aulas/' + classroom.id + '/foros/pagina') return slice(search(communityThreads));
+        if (pathname.startsWith('/api/v1/aulas/' + classroom.id + '/foros/') && pathname.endsWith('/detalle')) {
+          const row = communityThreads.find(h => pathname.includes('/' + h.id + '/'));
+          return row ? json(200, row) : json(404, {});
+        }
+        const forumMatch = pathname.match(/^\/api\/v1\/foros\/([^/]+)\/mensajes\/pagina$/);
+        if (forumMatch) return slice(Array.from({ length: 45 }, (_, i) => ({ id: 'fixture-fm-' + String(44 - i).padStart(3, '0'), hiloId: forumMatch[1], autorNombre: 'Practicante 000', texto: 'Respuesta ' + String(44 - i).padStart(3, '0'), fecha: date })));
       }
       if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method())) { writes.push(request.method() + ' ' + pathname); return route.abort(); }
       return route.continue();
@@ -240,6 +259,24 @@ let stage = 'preparar', activePage;
     checks.push('Supervisor: selector paginado, bitácora de horas por páginas con filtros y totales globales, y revisión confirmada'); await supervisor.context().close();
     checks.push('Supervisor sin buscador: páginas y filtros de prácticas abiertas/cerradas');
 
+    stage = 'comunidad docente'; const community = await create('profesor', true);
+    await community.goto(web + '/comunidad', { waitUntil: 'networkidle' }); await heading(community, 'Comunidad del aula');
+    await counter(community, '20 de 45 anuncios'); await counter(community, '45 anuncios en la consulta');
+    await more(community, '40 de 45 anuncios'); await more(community, '45 de 45 anuncios');
+    await community.getByLabel('Buscar en el aula').fill('Anuncio 044'); await counter(community, '1 de 1 anuncios');
+    await community.getByLabel('Buscar en el aula').fill(''); await counter(community, '20 de 45 anuncios');
+    await button(community, 'Mostrar solo fijados').click(); await counter(community, '17 de 17 anuncios');
+    await button(community, 'Mostrar todos los anuncios').click(); await counter(community, '20 de 45 anuncios');
+    await button(community, 'Ver anuncio completo').first().click(); await community.getByText('Contenido completo del Anuncio', { exact: false }).waitFor();
+    await button(community, 'Foros').click(); await counter(community, '20 de 45 temas'); await counter(community, '45 temas en la consulta');
+    await more(community, '40 de 45 temas'); await more(community, '45 de 45 temas');
+    await community.getByLabel('Buscar en el aula').fill('Tema 044'); await counter(community, '1 de 1 temas');
+    await community.getByLabel('Buscar en el aula').fill(''); await counter(community, '20 de 45 temas');
+    await button(community, 'Abrir conversación: Tema 000').click(); await heading(community, 'Conversación del aula');
+    await counter(community, '20 de 45 respuestas'); await community.getByText('Respuesta 044', { exact: true }).waitFor();
+    await more(community, '40 de 45 respuestas'); await more(community, '45 de 45 respuestas'); await community.getByText('Respuesta 000', { exact: true }).waitFor();
+    checks.push('Comunidad docente: anuncios, foros y respuestas 20→40→45 con búsqueda en servidor, fijados, detalle completo y contexto exacto del tema'); await community.context().close();
+
     stage = 'administracion real'; const admin = await create('admin');
     await admin.goto(web + '/docencia', { waitUntil: 'networkidle' }); await heading(admin, 'Mis aulas · Docencia');
     await admin.getByLabel('Buscar aula', { exact: true }).fill(aula.nombre); await admin.getByRole('button', { name: new RegExp('^' + aula.nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) }).waitFor();
@@ -304,7 +341,7 @@ let stage = 'preparar', activePage;
     for (const width of [360, 390, 430]) { await adminFixture.setViewportSize({ width, height: 844 }); assert.equal(await adminFixture.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false); }
     await adminFixture.setViewportSize({ width: 390, height: 844 });
     checks.push('Ficha de aula aislada: detalle exacto y padrón 20→40→45 con búsqueda, filtros y tamaños móviles'); await adminFixture.context().close();
-    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas' || ['/api/v1/admin/usuarios', '/api/v1/admin/aulas', '/api/v1/admin/auditoria', '/api/v1/admin/reportes'].includes(r.path) || /^\/api\/v1\/admin\/aulas\/[^/]+\/matriculas$/.test(r.path));
+    const obsolete = requests.filter(r => r.path === '/api/v1/aulas' || r.path === '/api/v1/profesor/practicantes' || /^\/api\/v1\/profesor\/aulas\/[^/]+\/(entregas|libro|tareas)$/.test(r.path) || r.path === '/api/v1/practicas' || ['/api/v1/admin/usuarios', '/api/v1/admin/aulas', '/api/v1/admin/auditoria', '/api/v1/admin/reportes'].includes(r.path) || /^\/api\/v1\/admin\/aulas\/[^/]+\/matriculas$/.test(r.path) || /^\/api\/v1\/aulas\/[^/]+\/(anuncios|foros)$/.test(r.path) || /^\/api\/v1\/foros\/[^/]+\/mensajes$/.test(r.path));
     assert.deepEqual(obsolete, []); assert.deepEqual(errors, []); assert.deepEqual(writes, []); assert.deepEqual(foreignApis, []);
     const report = { verified: true, checks, browserErrors: errors, academicWrites: writes, isolatedGradeWrites: gradeWrites, isolatedReviewWrites: reviewWrites, obsoleteListRequests: obsolete.length, foreignApis, nativeAndroid: false };
     fs.writeFileSync('.expo/dev/personal28-verificacion.json', JSON.stringify(report, null, 2)); console.log(JSON.stringify(report, null, 2));

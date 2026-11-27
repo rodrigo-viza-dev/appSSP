@@ -42,18 +42,6 @@ export async function getAulasComunidad(s: Session, signal: AbortSignal): Promis
     return v as AulaComunidad;
   });
 }
-export async function getAnuncios(s: Session, aulaId: string, signal: AbortSignal) {
-  member(s);
-  return list(await request<unknown>(`/aulas/${path(aulaId)}/anuncios`, s.token, undefined, signal), v => announcement(v, aulaId));
-}
-export async function getHilos(s: Session, aulaId: string, signal: AbortSignal) {
-  member(s);
-  return list(await request<unknown>(`/aulas/${path(aulaId)}/foros`, s.token, undefined, signal), v => thread(v, aulaId));
-}
-export async function getMensajesForo(s: Session, hiloId: string, signal: AbortSignal) {
-  member(s);
-  return list(await request<unknown>(`/foros/${path(hiloId)}/mensajes`, s.token, undefined, signal), v => message(v, hiloId));
-}
 function open(aula: AulaComunidad) { if (aula.estado !== 'ACTIVA') throw new ApiError(409, 'El aula está concluida y su contenido es de consulta.'); }
 export async function publicarAnuncio(s: Session, aula: AulaComunidad, values: Record<string, string>, solicitudId: string, signal: AbortSignal) {
   if (!['PROFESOR', 'ADMIN'].includes(s.user.role)) throw new ApiError(403, 'Solo el docente o administración puede publicar anuncios.');
