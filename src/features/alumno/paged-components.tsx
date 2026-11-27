@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, typography } from '@/components/ui';
+import { Button, typography, useStackBack } from '@/components/ui';
 import { studentColors as c } from '@/theme/student';
 import { studentStyles as s } from './components';
 
-export function ListHeading({ title, subtitle, back }: { title: string; subtitle?: string; back: () => void }) {
-  return <SafeAreaView edges={['top']}><View style={s.heading}><Pressable accessibilityRole="button" accessibilityLabel="Volver" style={s.back} onPress={back}><Text style={s.chevron}>‹</Text></Pressable><View style={{ flex: 1 }}><Text accessibilityRole="header" style={s.title}>{title}</Text>{!!subtitle && <Text style={s.muted}>{subtitle}</Text>}</View></View></SafeAreaView>;
+export function ListHeading({ title, subtitle, back: requested }: { title: string; subtitle?: string; back: () => void }) {
+  const back = useStackBack(requested);
+  return <SafeAreaView edges={['top']}><View style={s.heading}>{back && <Pressable accessibilityRole="button" accessibilityLabel="Volver" style={s.back} onPress={back}><Text style={s.chevron}>‹</Text></Pressable>}<View style={{ flex: 1 }}><Text accessibilityRole="header" style={s.title}>{title}</Text>{!!subtitle && <Text style={s.muted}>{subtitle}</Text>}</View></View></SafeAreaView>;
 }
 export function FilterChip({ title, selected, onPress, disabled = false }: { title: string; selected: boolean; onPress: () => void; disabled?: boolean }) {
   return <Pressable accessibilityRole="button" accessibilityState={{ selected, disabled }} aria-selected={selected} disabled={disabled} onPress={onPress} style={[s.chip, selected && s.chipSelected]}><Text style={[s.muted, { color: selected ? c.paper : c.primary }]}>{title}</Text></Pressable>;

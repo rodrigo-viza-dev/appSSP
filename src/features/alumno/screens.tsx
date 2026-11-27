@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge, Button, typography } from '@/components/ui';
@@ -22,19 +22,25 @@ export function StudentHome(){
  useFocusEffect(useCallback(()=>{let active=true;if(session)void listDrafts(session).then(v=>{if(active)setDraftCount(v.length);}).catch(()=>{if(active)setDraftCount(null);});return()=>{active=false;};},[session,q.revision]));
  const d=q.data,task=d?.proximaTarea,practice=d?.practica,correction=d?.porCorregir;
  const go=(href:Href)=>router.push(href);
- return <StudentPage title="PrácticasCC" subtitle="Ciencias de la Comunicación · UNSA">
-  <View style={s.line}><Text style={s.muted}>Hola, {session?.user.nombres.split(' ')[0]}</Text><Pressable accessibilityRole="button" accessibilityLabel="Ver mi cuenta" onPress={()=>go('/cuenta' as Href)} style={{width:48,height:48,borderRadius:24,backgroundColor:c.soft,alignItems:'center',justifyContent:'center'}}><Text style={s.link}>{session?.user.nombres[0]}{session?.user.apellidos[0]}</Text></Pressable></View>
-  <Text accessibilityRole="header" style={s.hero}>{q.error?'Tu práctica, a la vista.':correction?'Revisa una actividad.':task?'Tienes una entrega pendiente.':d&&!practice?'Un nuevo comienzo.':d?'Tu práctica sigue en curso.':'Tu práctica, paso a paso.'}</Text>
+ const {unread}=useNotifications();
+ const status=practice?practice.estado==='CERRADA'?'Práctica cerrada':practice.estado==='LISTA_PARA_CIERRE'?'Lista para cierre':'Práctica en curso':null;
+ const shortcut=(title:string,subtitle:string,onPress:()=>void)=><Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${subtitle}`} onPress={onPress} style={[s.group,{flex:1,padding:16,gap:2}]}><Text style={s.rowTitle}>{title}</Text><Text style={s.mini}>{subtitle}</Text></Pressable>;
+ return <View style={s.page}><SafeAreaView edges={['top']} style={{flex:1}}><ScrollView contentContainerStyle={s.content}>
+  <View style={s.line}><View style={{flex:1}}><Text style={[s.eyebrow,{color:c.primary}]}>PrácticasCC</Text><Text style={s.mini}>Ciencias de la Comunicación · UNSA</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Ver mi cuenta" onPress={()=>go('/cuenta' as Href)} style={{width:48,height:48,borderRadius:24,backgroundColor:c.soft,alignItems:'center',justifyContent:'center'}}><Text style={s.link}>{session?.user.nombres[0]}{session?.user.apellidos[0]}</Text></Pressable></View>
+  <View style={{gap:6}}><Text accessibilityRole="header" style={s.hero}>Hola, {session?.user.nombres} {session?.user.apellidos}</Text>{practice&&<Text style={s.muted}>Tu práctica en {practice.aulaNombre} · {practice.periodo}</Text>}</View>
+  {status&&<View style={{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:8,paddingHorizontal:12,paddingVertical:6,borderRadius:16,borderWidth:1,borderColor:c.border,backgroundColor:c.paper}}><View style={{width:8,height:8,borderRadius:4,backgroundColor:practice?.estado==='CERRADA'?c.muted:c.green}} /><Text style={[s.mini,{color:c.text,fontWeight:'600'}]}>{status}</Text></View>}
   {offline&&<Text style={s.notice}>Sin conexión. Puedes continuar los borradores guardados en este dispositivo.</Text>}
   <QueryFeedback {...q} retry={q.refresh} notFound="Actualiza la API local para acceder a la nueva experiencia del alumno." />
+  {(correction||task)&&<Text style={s.eyebrow}>Lo próximo para ti</Text>}
   {correction&&<Pressable accessibilityRole="button" onPress={()=>go({pathname:'/actividad' as Href,params:{practicaId:correction.practicaId,registroId:correction.id}} as Href)} style={s.notice}><Text style={s.rowTitle}>Tienes una actividad por corregir ›</Text><Text style={s.muted}>Revisa la observación del supervisor antes de reenviarla.</Text></Pressable>}
-  {task&&<View style={s.priority}><View style={s.line}><Text style={s.eyebrow}>Entrega pendiente</Text><Badge title="Por entregar" tone="warning" /></View><Text style={s.title}>{task.titulo}</Text><Text style={s.muted}>{task.aulaNombre}</Text><View style={s.line}><Text style={[s.muted,{flex:1}]}>{academicDate(task.fechaLimite,'Sin plazo indicado')}</Text><Pressable accessibilityRole="button" onPress={()=>go({pathname:'/tarea',params:{aulaId:task.aulaId,tareaId:task.id}})} style={s.textButton}><Text style={s.link}>Ver tarea ›</Text></Pressable></View></View>}
+  {task&&<Pressable accessibilityRole="button" accessibilityLabel={`Próxima entrega: ${task.titulo}`} onPress={()=>go({pathname:'/tarea',params:{aulaId:task.aulaId,tareaId:task.id}})} style={s.priority}><View style={s.line}><Text style={[s.eyebrow,{color:c.primary}]}>Próxima entrega</Text><Badge title="Por entregar" tone="warning" /></View><Text style={s.title}>{task.titulo}</Text><Text style={s.muted}>Aula: {task.aulaNombre}</Text><View style={[s.line,{borderTopWidth:1,borderTopColor:c.border,paddingTop:12}]}><Text style={[s.rowTitle,{flex:1,fontSize:13}]}>{academicDate(task.fechaLimite,'Sin plazo indicado')}</Text><Text style={s.link}>Ver tarea ›</Text></View></Pressable>}
   {practice&&practice.estado!=='CERRADA'&&<Button title="＋ Registrar actividad" onPress={()=>go({pathname:'/registrar' as Href,params:{practicaId:practice.id}} as Href)} />}
-  {practice&&d?.resumen&&<HoursSummaryCard practice={practice} summary={d.resumen} />}
+  {practice&&d?.resumen&&<View style={[s.group,{padding:18}]}><HoursSummaryCard practice={practice} summary={d.resumen} /></View>}
   {d&&!practice&&<StudentEmpty title="Tu práctica empieza aquí"><Text style={s.muted}>Aún no tienes una práctica asignada. Puedes revisar tus aulas y consultar la guía.</Text><Button title="Explorar mis aulas" onPress={()=>router.navigate('/alumno/aulas' as Href)} /></StudentEmpty>}
+  {d&&<View style={[s.line,{alignItems:'stretch'}]}>{shortcut('Aulas',`${d.aulas.length} aula${d.aulas.length===1?'':'s'}`,()=>router.navigate('/alumno/aulas' as Href))}{shortcut('Avisos',unread?`${unread} sin leer`:'Al día',()=>router.navigate('/alumno/avisos' as Href))}</View>}
   {!!draftCount&&<StudentGroup><StudentRow title={`${draftCount} borrador${draftCount===1?'':'es'} por continuar`} subtitle="Tu contenido guardado todavía no se ha enviado." onPress={()=>go('/borradores')} /></StudentGroup>}
-  {d&&<Button title={q.loading?'Actualizando…':'Actualizar mi resumen'} secondary disabled={q.loading} onPress={q.refresh} />}
- </StudentPage>;
+  {d&&<Pressable accessibilityRole="button" disabled={q.loading} onPress={q.refresh} style={[s.textButton,{alignSelf:'center'}]}><Text style={s.link}>{q.loading?'Actualizando…':'Actualizar mi resumen'}</Text></Pressable>}
+ </ScrollView></SafeAreaView></View>;
 }
 
 export function StudentAulas(){const q=useStudent(),router=useAppRouter();return <StudentPage title="Mis aulas" subtitle="Tus tareas, materiales y conversaciones, por aula."><QueryFeedback {...q} retry={q.refresh} notFound="Las aulas no están disponibles." />{q.data&&<><StudentGroup>{q.data.aulas.map(a=><StudentRow key={a.id} title={a.nombre} subtitle={`${a.profesorNombre} · ${a.ciclo} · ${a.estado==='ACTIVA'?'Activa':'Concluida'}`} onPress={()=>router.push({pathname:'/aula',params:{id:a.id}})} />)}</StudentGroup>{q.data.aulas.length===0&&<StudentEmpty title="Aún no tienes aulas"><Text style={s.muted}>Tus aulas aparecerán cuando se registre tu matrícula.</Text></StudentEmpty>}<Button title="Actualizar aulas" secondary disabled={q.loading} onPress={q.refresh} /></>}</StudentPage>;}

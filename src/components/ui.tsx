@@ -2,10 +2,13 @@ import { useStudentAppearance, studentColors as sc } from '@/theme/student';
 import type { PropsWithChildren } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, type ColorValue, type TextInputProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePathname } from 'expo-router';
 import { colors, serif } from '@/theme';
 
-export function Header({ title, subtitle, back }: { title: string; subtitle: string; back?: () => void }) {
-  const student=useStudentAppearance();
+/** Tab roots (/equipo/trabajo, /alumno/aulas…) are destinations, not stacked pages: they get no back arrow. */
+export function useStackBack<T>(back: T): T | undefined { return /^\/(equipo|alumno)\/[^/]+\/?$/.test(usePathname()) ? undefined : back; }
+export function Header({ title, subtitle, back: requestedBack }: { title: string; subtitle: string; back?: () => void }) {
+  const student=useStudentAppearance(), back=useStackBack(requestedBack);
   if(student)return <SafeAreaView edges={['top']} style={{backgroundColor:sc.background}}><View style={[s.headerInner,{padding:20,paddingBottom:12,maxWidth:560,width:'100%',alignSelf:'center'}]}>{back&&<Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Volver" style={{minWidth:48,minHeight:48,justifyContent:'center',alignItems:'center',marginLeft:-12}}><Text style={{fontSize:32,color:sc.primary}}>‹</Text></Pressable>}<View style={{flex:1}}><Text accessibilityRole="header" style={{fontSize:23,lineHeight:30,fontWeight:'700',color:sc.text}}>{title}</Text>{!!subtitle&&<Text style={{fontSize:13,lineHeight:21,color:sc.muted,marginTop:4}}>{subtitle}</Text>}</View></View></SafeAreaView>;
   return <SafeAreaView edges={['top']} style={s.header}><View style={s.headerInner}>
     {back && <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="Volver" hitSlop={12}><Text style={s.back}>‹</Text></Pressable>}
