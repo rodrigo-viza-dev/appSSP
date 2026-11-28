@@ -20,7 +20,7 @@ async function main() {
     const response = await fetch(`${api}/api/v1/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: `${role}.prueba@unsa.edu.pe`, password }) });
     assert.equal(response.status, 200); const session = await response.json();
     const headers = { Authorization: `Bearer ${session.token}` };
-    for (const endpoint of ['/auth/me', ...(role === 'admin' ? ['/admin/asignaciones'] : [])]) {
+    for (const endpoint of ['/auth/me', ...(role === 'admin' ? ['/admin/centros/pagina?limite=20'] : [])]) {
       const result = await fetch(`${api}/api/v1${endpoint}`, { headers });
       assert.equal(result.status, 200); http.push({ role, endpoint, status: result.status });
     }
