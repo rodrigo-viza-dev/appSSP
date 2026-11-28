@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '@/components/screen';
 import { QueryFeedback } from '@/components/query-feedback';
 import { Badge, Button, Card, Header, typography } from '@/components/ui';
+import { PushToggle } from '@/features/shared/push-toggle';
 import { useNotifications } from '@/state/notificaciones';
 import { colors } from '@/theme';
 import { academicDate } from '@/utils/date';
@@ -16,6 +17,7 @@ function MisAvisosScreenContent() {
   return <View style={s.root}>
     <Header title="Mis avisos" subtitle="Tu actividad en el SSP" back={back} />
     <Screen>
+      <PushToggle />
       <QueryFeedback loading={notifications.loading} error={notifications.error} retry={notifications.refresh} notFound="La bandeja de avisos no está disponible." />
       {notifications.items && <>
         <Text accessibilityLiveRegion="polite" style={typography.title}>{notifications.unread === 1 ? '1 aviso sin leer' : `${notifications.unread} avisos sin leer`}</Text>

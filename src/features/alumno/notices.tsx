@@ -11,6 +11,7 @@ import { useSessionQuery } from '@/features/shared/use-session-query';
 import { academicDate } from '@/utils/date';
 import { studentColors as c } from '@/theme/student';
 import { StudentPage, studentStyles as s } from './components';
+import { PushToggle } from '@/features/shared/push-toggle';
 import { useAppRouter } from './navigation';
 
 const kinds: Record<string,string> = { TAREA_ASIGNADA: 'Nueva tarea', TAREA_ACTUALIZADA: 'Tarea actualizada', REVISION_HORAS: 'Revisión de actividad', VENCIMIENTO: 'Vencimiento' };
@@ -19,6 +20,7 @@ const kindLabel = (notice: Notificacion) => kinds[notice.tipo] ?? 'Aviso';
 export function StudentNotices() {
   const n = useNotifications(), router = useAppRouter();
   const header = <View style={{ gap: 18, paddingBottom: 18 }}>
+    <PushToggle />
     <Text accessibilityLiveRegion="polite" style={s.muted}>{n.unread === null ? 'Consultando tu bandeja…' : n.unread === 1 ? '1 aviso sin leer' : `${n.unread} avisos sin leer`}</Text>
     <View style={{ flexDirection: 'row', gap: 8 }}>{([['todos','Todos'],['pendientes','Sin leer'],['leidos','Leídos']] as [NoticeFilter,string][]).map(([value,label]) => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: n.filter === value, disabled: n.busy || n.loadingMore }} disabled={n.busy || n.loadingMore} onPress={() => n.setFilter(value)} style={[s.chip,{flex:1,alignItems:'center'},n.filter===value&&s.chipSelected]}><Text style={{color:n.filter===value?c.paper:c.primary,fontSize:13,fontWeight:'600'}}>{label}</Text></Pressable>)}</View>
     <QueryFeedback loading={n.loading} error={n.error} retry={n.refresh} notFound="La bandeja no está disponible." />
