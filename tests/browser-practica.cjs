@@ -35,7 +35,7 @@ let stage = 'preparar';
     tipo, cantidadObjetivo: 4, cantidadAlcanzada: i === 1 ? 5 : 0, descripcion: 'Producción de prueba para el diseño.', creadoPor: 'Docente de prueba', fechaCreacion: '2026-10-23T12:00:00Z',
   }));
   let fixtureMode = 'normal', goalsMode = 'normal';
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined });
   async function create(session, fixture = false) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
     const page = await context.newPage(); page.setDefaultTimeout(25000);
@@ -50,7 +50,11 @@ let stage = 'preparar';
       if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method())) { writes.push(request.method() + ' ' + pathname); return route.abort(); }
       const json = (status, body) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
       if (fixture && pathname === '/api/v1/practicas') return json(200, fixtureMode === 'empty' ? [] : [practice]);
-      if (fixture && pathname.startsWith('/api/v1/metas/practica/')) return json(200, goalsMode === 'empty' ? [] : goals);
+      if (fixture && pathname.startsWith('/api/v1/equipo/practicas/') && pathname.endsWith('/metas/pagina')) {
+        const all = goalsMode === 'empty' ? [] : goals, estado = url.searchParams.get('estado'), done = all.filter(g => g.cantidadAlcanzada >= g.cantidadObjetivo);
+        const items = estado === 'COMPLETADAS' ? done : estado === 'EN_PROGRESO' ? all.filter(g => g.cantidadAlcanzada < g.cantidadObjetivo) : all;
+        return json(200, { items, total: items.length, siguiente: null, totalMetas: all.length, completadas: done.length });
+      }
       if (fixture && pathname.endsWith('/resumen') && pathname.includes('/expedientes/')) {
         if (fixtureMode === 'error') return json(503, {});
         if (fixtureMode === 'forbidden') return json(403, {});

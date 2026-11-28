@@ -5,28 +5,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge, Button } from '@/components/ui';
 import { QueryFeedback } from '@/components/query-feedback';
 import { useStudentQuery } from '@/features/shared/use-student-query';
-import { getMetas, getPracticasMetas, metaKinds, type Meta } from '@/services/metas';
+import { getGoalPage, getPracticasMetas, metaKinds, type GoalFilter, type GoalPage, type Meta } from '@/services/metas';
+import { usePagedQuery } from '@/features/shared/use-paged-query';
 import type { Session } from '@/services/api';
 import { academicDate } from '@/utils/date';
 import { studentColors as c } from '@/theme/student';
 import { useAppRouter } from './navigation';
 import { StudentGroup, StudentRow, studentStyles as s } from './components';
+import { PageFooter } from './paged-components';
 
 export function StudentGoals() {
   const router = useAppRouter(), params = useLocalSearchParams<{ practicaId?: string }>();
   const requested = typeof params.practicaId === 'string' ? params.practicaId : '';
   const [selected, setSelected] = useState('');
-  const [filter, setFilter] = useState<'all' | 'pending' | 'done'>('all');
+  const [filter, setFilter] = useState<GoalFilter>('TODAS');
   const [expanded, setExpanded] = useState<string | null>(null);
   const practices = useStudentQuery('student-goals-practices', useCallback(getPracticasMetas, []), true);
   const chosen = selected || requested;
   const practice = chosen ? practices.data?.find(p => p.id === chosen) : practices.data?.[0];
   const id = practice?.id ?? '';
-  const query = useStudentQuery(`student-goals:${id}`, useCallback((session: Session, signal: AbortSignal) => getMetas(session, practice!, signal), [practice]), !!practice);
-  const done = query.data?.filter(m => m.cantidadAlcanzada >= m.cantidadObjetivo).length ?? 0;
-  const rows = query.data?.filter(m => filter === 'all' || (filter === 'done' ? m.cantidadAlcanzada >= m.cantidadObjetivo : m.cantidadAlcanzada < m.cantidadObjetivo)) ?? [];
+  const query = usePagedQuery<Meta, GoalPage>(`student-goals:${id}:${filter}`, useCallback((session: Session, signal: AbortSignal, cursor?: string | null) => getGoalPage(session, practice!, filter, '', signal, cursor), [practice, filter]), !!practice);
+  const done = query.data?.completadas ?? 0, totalGoals = query.data?.totalMetas ?? 0;
+  const rows = query.data?.items ?? [];
   const back = () => router.canGoBack() ? router.back() : router.replace('/alumno/mas');
-  const choose = (value: string) => { setSelected(value); setExpanded(null); setFilter('all'); };
+  const choose = (value: string) => { setSelected(value); setExpanded(null); setFilter('TODAS'); };
   const header = <View style={{ gap: 20, paddingBottom: 18 }}>
     <QueryFeedback {...practices} notFound="No pudimos consultar tus prácticas." />
     {practices.data?.length === 0 && <><Text style={s.title}>Aún no tienes una práctica asignada</Text><Text style={s.muted}>Tus metas aparecerán cuando la coordinación asigne tu práctica.</Text></>}
@@ -34,10 +36,10 @@ export function StudentGoals() {
     {practices.data && (practices.data.length > 1 || !!chosen && !practice) && <StudentGroup>{practices.data.map(p => <StudentRow key={p.id} title={p.aulaNombre} subtitle={`${p.periodo} · ${p.estado === 'CERRADA' ? 'Cerrada' : 'En curso'}`} end={p.id === id ? 'Actual' : undefined} onPress={() => choose(p.id)} />)}</StudentGroup>}
     {practice && <>
       <View style={{ gap: 12 }}><Text style={s.eyebrow}>{practice.periodo}</Text><Text accessibilityRole="header" style={s.hero}>{practice.aulaNombre}</Text>{practice.estado === 'CERRADA' && <Badge title="Práctica cerrada · Solo consulta" tone="neutral" />}</View>
-      <QueryFeedback {...query} notFound="Las metas de esta práctica no están disponibles." />
+      <QueryFeedback {...query} retry={query.retry} notFound="Las metas de esta práctica no están disponibles." />
       {query.data && <>
-        <View style={s.priority}><Text style={s.eyebrow}>Objetivos completados</Text><Text style={s.hero}>{done} de {query.data.length}</Text><Text style={s.muted}>{query.data.length ? `${query.data.length - done} metas en progreso. El avance corresponde a la producción revisada por tu docente y a las horas validadas.` : 'Tu docente todavía no ha definido metas para esta práctica.'}</Text></View>
-        {!!query.data.length && <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{([['all', 'Todas'], ['pending', 'En progreso'], ['done', 'Completadas']] as const).map(([value, label]) => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: filter === value }} aria-selected={filter === value} onPress={() => setFilter(value)} style={[s.chip, filter === value && s.chipSelected]}><Text style={{ color: filter === value ? c.paper : c.primary }}>{label}</Text></Pressable>)}</View>}
+        <View style={s.priority}><Text style={s.eyebrow}>Objetivos completados</Text><Text style={s.hero}>{done} de {totalGoals}</Text><Text style={s.muted}>{totalGoals ? `${totalGoals - done} metas en progreso. El avance corresponde a la producción revisada por tu docente y a las horas validadas.` : 'Tu docente todavía no ha definido metas para esta práctica.'}</Text></View>
+        {!!totalGoals && <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{([['TODAS', 'Todas'], ['EN_PROGRESO', 'En progreso'], ['COMPLETADAS', 'Completadas']] as const).map(([value, label]) => <Pressable key={value} accessibilityRole="button" accessibilityState={{ selected: filter === value }} aria-selected={filter === value} onPress={() => setFilter(value)} style={[s.chip, filter === value && s.chipSelected]}><Text style={{ color: filter === value ? c.paper : c.primary }}>{label}</Text></Pressable>)}</View>}
       </>}
     </>}
   </View>;
@@ -59,8 +61,8 @@ export function StudentGoals() {
           {open && <><Text style={s.muted}>{m.descripcion || 'Objetivo de producción de esta práctica.'}</Text><Text style={s.mini}>Definida por {m.creadoPor} · {academicDate(m.fechaCreacion)}</Text><Text style={s.muted}>{m.tipo === 'HORAS' ? 'Se actualiza con tus horas validadas. Las horas en revisión o rechazadas no cuentan.' : 'Tu docente registra el total de producción que ha revisado. Si falta una actualización, consulta con él.'}</Text>{m.tipo === 'HORAS' && <Button title="Consultar mis horas" secondary onPress={() => router.push({ pathname: '/mis-horas', params: { practicaId: id } })} />}</>}
         </View>;
       }}
-      ListEmptyComponent={query.data && query.data.length > 0 && !rows.length ? <Text style={s.muted}>No hay metas en este filtro.</Text> : null}
-      ListFooterComponent={<View style={{ gap: 18, paddingTop: 18 }}>{practice && <StudentGroup><StudentRow title="Ver expediente" subtitle="Consulta qué metas exige el cierre de tu práctica." onPress={() => router.push({ pathname: '/expediente', params: { practicaId: id } })} /></StudentGroup>}<Button title="Actualizar metas" secondary disabled={practices.loading || query.loading} onPress={practices.retry} /></View>}
+      ListEmptyComponent={query.data && totalGoals > 0 && !rows.length ? <Text style={s.muted}>No hay metas en este filtro.</Text> : null}
+      ListFooterComponent={<View style={{ gap: 18, paddingTop: 18 }}>{!!rows.length && <PageFooter query={query} noun="metas" />}{practice && <StudentGroup><StudentRow title="Ver expediente" subtitle="Consulta qué metas exige el cierre de tu práctica." onPress={() => router.push({ pathname: '/expediente', params: { practicaId: id } })} /></StudentGroup>}<Button title="Actualizar metas" secondary disabled={practices.loading || query.loading} onPress={() => { practices.retry(); query.retry(); }} /></View>}
     />
   </View>;
 }

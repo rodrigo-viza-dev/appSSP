@@ -25,13 +25,6 @@ export async function getPracticasMetas(s: Session, signal: AbortSignal): Promis
   if (!Array.isArray(values) || !values.every(v => object(v) && text(v.id) && text(v.practicanteId) && text(v.practicanteNombre) && text(v.aulaNombre) && text(v.periodo) && ['EN_CURSO', 'LISTA_PARA_CIERRE', 'CERRADA'].includes(String(v.estado)) && (s.user.role !== 'ALUMNO' || v.practicanteId === s.user.id)) || new Set(values.map(v => v.id)).size !== values.length) invalid();
   return values as PracticaMetas[];
 }
-export async function getMetas(s: Session, practica: PracticaMetas, signal: AbortSignal): Promise<Meta[]> {
-  const values = await request<unknown>(`/metas/practica/${encodeURIComponent(practica.id)}`, s.token, undefined, signal);
-  if (!Array.isArray(values)) invalid();
-  const rows = values.map(v => parse(v, practica));
-  if (new Set(rows.map(r => r.id)).size !== rows.length) invalid();
-  return rows;
-}
 export type GoalPage = Page<Meta> & { totalMetas: number; completadas: number };
 export type GoalFilter = 'TODAS' | 'EN_PROGRESO' | 'COMPLETADAS';
 export async function getGoalPage(s: Session, practica: Pick<PracticaMetas, 'id' | 'practicanteId'>, estado: GoalFilter, q: string, signal: AbortSignal, cursor?: string | null): Promise<GoalPage> {
